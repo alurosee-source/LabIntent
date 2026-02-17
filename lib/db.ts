@@ -46,5 +46,16 @@ export async function initDatabase() {
     )
   `;
 
+  await sql`
+    CREATE TABLE IF NOT EXISTS coach_applications (
+      id SERIAL PRIMARY KEY,
+      name TEXT,
+      team_name TEXT,
+      contact TEXT,
+      team_size TEXT,
+      created_at TIMESTAMP DEFAULT NOW()
+    )
+  `;
+
   return true;
 }
