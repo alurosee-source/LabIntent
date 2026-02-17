@@ -61,6 +61,7 @@ export function ReactionTest() {
   const falseRef = useRef(0);
   const circleTimerRef = useRef<NodeJS.Timeout | null>(null);
   const nextTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const circleTypeRef = useRef<"green" | "red" | null>(null);
 
   const { t } = useLanguage();
 
@@ -98,12 +99,14 @@ export function ReactionTest() {
     const y = 15 + Math.random() * 70;
     clickedRef.current = false;
     appearTimeRef.current = Date.now();
+    circleTypeRef.current = type;
     setCircle({ type, x, y });
 
     circleTimerRef.current = setTimeout(() => {
       if (!clickedRef.current && type === "green") {
         missedRef.current++;
       }
+      circleTypeRef.current = null;
       setCircle(null);
       const delay = 800 + Math.random() * 1700;
       nextTimerRef.current = setTimeout(showNextCircle, delay);
@@ -139,13 +142,14 @@ export function ReactionTest() {
 
   const handleCircleClick = (e: React.MouseEvent) => {
     e.stopPropagation();
-    if (!circle) return;
-    if (circle.type === "green") {
+    if (clickedRef.current || !circleTypeRef.current) return;
+    clickedRef.current = true;
+    if (circleTypeRef.current === "green") {
       reactTimesRef.current.push(Date.now() - appearTimeRef.current);
     } else {
       falseRef.current++;
     }
-    clickedRef.current = true;
+    circleTypeRef.current = null;
     if (circleTimerRef.current) clearTimeout(circleTimerRef.current);
     setCircle(null);
     const delay = 800 + Math.random() * 1700;
