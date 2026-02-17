@@ -7,7 +7,7 @@ import { CoachForm } from "@/components/sections/coach-form";
 
 export default function Home() {
   return (
-    <main className="min-h-screen bg-black text-white">
+    <main className="min-h-screen bg-black text-white pt-14">
       <HeroCoach />
       <ReactionTest />
       <DashboardMockup />

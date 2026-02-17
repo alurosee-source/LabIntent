@@ -6,10 +6,11 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 
-export default function LoginPage() {
+export default function RegisterCoachPage() {
   const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [teamName, setTeamName] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
@@ -19,14 +20,14 @@ export default function LoginPage() {
     setError("");
 
     try {
-      const res = await fetch("/api/auth/login", {
+      const res = await fetch("/api/auth/register", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password }),
+        body: JSON.stringify({ email, password, team_name: teamName }),
       });
       const data = await res.json();
       if (!res.ok) {
-        setError(data.error || "Ошибка входа");
+        setError(data.error || "Ошибка регистрации");
         return;
       }
       router.push("/dashboard");
@@ -44,7 +45,7 @@ export default function LoginPage() {
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-red-600/40 text-red-600 text-xs font-semibold uppercase tracking-wider mb-6">
             Drop Detector
           </div>
-          <h1 className="text-2xl font-bold">Вход для тренера</h1>
+          <h1 className="text-2xl font-bold">Создать команду</h1>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-4">
@@ -53,6 +54,23 @@ export default function LoginPage() {
               {error}
             </div>
           )}
+
+          <div>
+            <label className="block text-sm font-semibold mb-2 uppercase tracking-wide text-gray-400">
+              Название команды
+            </label>
+            <Input
+              type="text"
+              placeholder="NAVI, Virtus.pro, ..."
+              value={teamName}
+              onChange={(e) => setTeamName(e.target.value)}
+              required
+              disabled={loading}
+            />
+            <p className="text-xs text-gray-600 mt-1">
+              Игроки будут вводить это название перед тестом
+            </p>
+          </div>
 
           <div>
             <label className="block text-sm font-semibold mb-2 uppercase tracking-wide text-gray-400">
@@ -74,7 +92,7 @@ export default function LoginPage() {
             </label>
             <Input
               type="password"
-              placeholder="••••••"
+              placeholder="Минимум 6 символов"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
@@ -83,14 +101,14 @@ export default function LoginPage() {
           </div>
 
           <Button type="submit" size="lg" className="w-full mt-2" disabled={loading}>
-            {loading ? "Входим..." : "Войти"}
+            {loading ? "Создаём..." : "Создать команду"}
           </Button>
         </form>
 
         <p className="text-center text-sm text-gray-500 mt-6">
-          Нет команды?{" "}
-          <Link href="/register-coach" className="text-red-500 hover:text-red-400 transition-colors">
-            Создать команду
+          Уже есть аккаунт?{" "}
+          <Link href="/login" className="text-red-500 hover:text-red-400 transition-colors">
+            Войти
           </Link>
         </p>
 
