@@ -21,7 +21,7 @@ function shuffle<T>(arr: T[]): T[] {
 }
 
 function calcScore(avgMs: number, missed: number, falseCl: number): number {
-  let base: number;
+  let base = 15;
   if (avgMs < 180) base = 100;
   else if (avgMs < 250) base = 85;
   else if (avgMs < 350) base = 70;
