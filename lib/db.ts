@@ -31,5 +31,20 @@ export async function initDatabase() {
     // Column might already exist or other error - safe to ignore for IF NOT EXISTS
   }
 
+  await sql`
+    CREATE TABLE IF NOT EXISTS test_results (
+      id SERIAL PRIMARY KEY,
+      nickname TEXT,
+      created_at TIMESTAMP DEFAULT NOW(),
+      avg_reaction_ms INTEGER,
+      missed_targets INTEGER,
+      false_clicks INTEGER,
+      score INTEGER,
+      sleep_hours INTEGER,
+      stress INTEGER,
+      motivation INTEGER
+    )
+  `;
+
   return true;
 }

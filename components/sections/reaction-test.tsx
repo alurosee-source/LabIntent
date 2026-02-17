@@ -1,93 +1,219 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import { useState, useRef, useEffect } from "react";
+import { Input } from "@/components/ui/input";
+import { useState, useRef, useEffect, useCallback } from "react";
 import { useLanguage } from "@/lib/language-context";
 
-type TestState = "idle" | "waiting" | "ready" | "result";
+type GameState = "idle" | "countdown" | "playing" | "results" | "form" | "saved";
+
+const TOTAL_CIRCLES = 30;
+const GREEN_CIRCLES = 20;
+const CIRCLE_VISIBLE_MS = 1000;
+
+function shuffle<T>(arr: T[]): T[] {
+  const result = [...arr];
+  for (let i = result.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [result[i], result[j]] = [result[j], result[i]];
+  }
+  return result;
+}
+
+function calcScore(avgMs: number, missed: number, falseCl: number): number {
+  let s = 100;
+  s -= falseCl * 5;
+  s -= missed * 3;
+  if (avgMs > 500) s -= 20;
+  else if (avgMs > 400) s -= 10;
+  return Math.max(0, s);
+}
 
 export function ReactionTest() {
-  const [state, setState] = useState<TestState>("idle");
-  const [reactionTime, setReactionTime] = useState<number | null>(null);
-  const [percentile, setPercentile] = useState<number | null>(null);
-  const [tier, setTier] = useState<string>("");
-  const startTimeRef = useRef<number>(0);
-  const timeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const [state, setState] = useState<GameState>("idle");
+  const [countdown, setCountdown] = useState(3);
+  const [circle, setCircle] = useState<{ type: "green" | "red"; x: number; y: number } | null>(null);
+  const [progress, setProgress] = useState(0);
+
+  // Final results
+  const [score, setScore] = useState(0);
+  const [avgMs, setAvgMs] = useState(0);
+  const [missedCount, setMissedCount] = useState(0);
+  const [falseCount, setFalseCount] = useState(0);
+
+  // Form
+  const [nickname, setNickname] = useState("");
+  const [sleepHours, setSleepHours] = useState(7);
+  const [stress, setStress] = useState(5);
+  const [motivation, setMotivation] = useState(5);
+  const [saving, setSaving] = useState(false);
+  const [saveError, setSaveError] = useState("");
+
+  // Game refs (avoid stale closures in timers)
+  const orderRef = useRef<Array<"green" | "red">>([]);
+  const indexRef = useRef(0);
+  const appearTimeRef = useRef(0);
+  const clickedRef = useRef(false);
+  const reactTimesRef = useRef<number[]>([]);
+  const missedRef = useRef(0);
+  const falseRef = useRef(0);
+  const circleTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const nextTimerRef = useRef<NodeJS.Timeout | null>(null);
+
   const { t } = useLanguage();
 
-  const calculateStats = (time: number) => {
-    let calculatedPercentile = 0;
-    let calculatedTierKey = "";
+  const clearTimers = () => {
+    if (circleTimerRef.current) clearTimeout(circleTimerRef.current);
+    if (nextTimerRef.current) clearTimeout(nextTimerRef.current);
+  };
 
-    if (time < 200) {
-      calculatedPercentile = 95 + Math.floor(Math.random() * 5);
-      calculatedTierKey = "Elite";
-    } else if (time < 250) {
-      calculatedPercentile = 75 + Math.floor(Math.random() * 15);
-      calculatedTierKey = "Elite";
-    } else if (time < 300) {
-      calculatedPercentile = 50 + Math.floor(Math.random() * 20);
-      calculatedTierKey = "Average";
+  const finishGame = useCallback(() => {
+    clearTimers();
+    setCircle(null);
+    const times = reactTimesRef.current;
+    const avg = times.length > 0
+      ? Math.round(times.reduce((a, b) => a + b, 0) / times.length)
+      : 999;
+    const missed = missedRef.current;
+    const falseCl = falseRef.current;
+    setAvgMs(avg);
+    setMissedCount(missed);
+    setFalseCount(falseCl);
+    setScore(calcScore(avg, missed, falseCl));
+    setState("results");
+  }, []);
+
+  const showNextCircle = useCallback(() => {
+    if (indexRef.current >= TOTAL_CIRCLES) {
+      finishGame();
+      return;
+    }
+    const type = orderRef.current[indexRef.current];
+    indexRef.current++;
+    setProgress(indexRef.current);
+
+    const x = 15 + Math.random() * 70;
+    const y = 15 + Math.random() * 70;
+    clickedRef.current = false;
+    appearTimeRef.current = Date.now();
+    setCircle({ type, x, y });
+
+    circleTimerRef.current = setTimeout(() => {
+      if (!clickedRef.current && type === "green") {
+        missedRef.current++;
+      }
+      setCircle(null);
+      const delay = 800 + Math.random() * 1700;
+      nextTimerRef.current = setTimeout(showNextCircle, delay);
+    }, CIRCLE_VISIBLE_MS);
+  }, [finishGame]);
+
+  const startGame = useCallback(() => {
+    orderRef.current = shuffle([
+      ...Array(GREEN_CIRCLES).fill("green"),
+      ...Array(TOTAL_CIRCLES - GREEN_CIRCLES).fill("red"),
+    ]);
+    indexRef.current = 0;
+    reactTimesRef.current = [];
+    missedRef.current = 0;
+    falseRef.current = 0;
+    setProgress(0);
+    setCountdown(3);
+    setState("countdown");
+
+    let count = 3;
+    const tick = () => {
+      count--;
+      if (count === 0) {
+        setState("playing");
+        nextTimerRef.current = setTimeout(showNextCircle, 800);
+      } else {
+        setCountdown(count);
+        nextTimerRef.current = setTimeout(tick, 1000);
+      }
+    };
+    nextTimerRef.current = setTimeout(tick, 1000);
+  }, [showNextCircle]);
+
+  const handleCircleClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (!circle) return;
+    if (circle.type === "green") {
+      reactTimesRef.current.push(Date.now() - appearTimeRef.current);
     } else {
-      calculatedPercentile = 20 + Math.floor(Math.random() * 25);
-      calculatedTierKey = "Delayed";
+      falseRef.current++;
     }
-
-    setPercentile(calculatedPercentile);
-    setTier(calculatedTierKey);
+    clickedRef.current = true;
+    if (circleTimerRef.current) clearTimeout(circleTimerRef.current);
+    setCircle(null);
+    const delay = 800 + Math.random() * 1700;
+    nextTimerRef.current = setTimeout(showNextCircle, delay);
   };
 
-  const startTest = () => {
-    setState("waiting");
-    const randomDelay = 2000 + Math.random() * 3000;
-
-    timeoutRef.current = setTimeout(() => {
-      startTimeRef.current = Date.now();
-      setState("ready");
-    }, randomDelay);
+  const handleAreaClick = () => {
+    if (state !== "playing") return;
+    if (!circle) {
+      falseRef.current++;
+    }
   };
 
-  const handleClick = () => {
-    if (state === "idle") {
-      startTest();
-      return;
-    }
-
-    if (state === "waiting") {
-      if (timeoutRef.current) clearTimeout(timeoutRef.current);
-      setState("idle");
-      return;
-    }
-
-    if (state === "ready") {
-      const time = Date.now() - startTimeRef.current;
-      setReactionTime(time);
-      calculateStats(time);
-      setState("result");
+  const handleSave = async () => {
+    setSaving(true);
+    setSaveError("");
+    try {
+      const res = await fetch("/api/save-result", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          nickname: nickname || "Anonymous",
+          avg_reaction_ms: avgMs,
+          missed_targets: missedCount,
+          false_clicks: falseCount,
+          score,
+          sleep_hours: sleepHours,
+          stress,
+          motivation,
+        }),
+      });
+      if (!res.ok) throw new Error("failed");
+      setState("saved");
+    } catch {
+      setSaveError(t("reactionTest.saveError"));
+    } finally {
+      setSaving(false);
     }
   };
 
   const reset = () => {
+    clearTimers();
+    setCircle(null);
     setState("idle");
-    setReactionTime(null);
-    setPercentile(null);
-    setTier("");
+    setScore(0);
+    setAvgMs(0);
+    setMissedCount(0);
+    setFalseCount(0);
+    setNickname("");
+    setSleepHours(7);
+    setStress(5);
+    setMotivation(5);
+    setSaveError("");
+    setProgress(0);
   };
 
   useEffect(() => {
-    return () => {
-      if (timeoutRef.current) clearTimeout(timeoutRef.current);
-    };
+    return () => clearTimers();
   }, []);
 
-  const getTierColor = () => {
-    if (tier === "Elite") return "text-green-500";
-    if (tier === "Average") return "text-yellow-500";
-    return "text-red-600";
+  const getScoreLabel = (s: number) => {
+    if (s >= 85) return t("reactionTest.scoreExcellent");
+    if (s >= 65) return t("reactionTest.scoreNormal");
+    return t("reactionTest.scoreRest");
   };
 
-  const scrollToBeta = () => {
-    document.getElementById("beta-access")?.scrollIntoView({ behavior: "smooth" });
+  const getScoreColor = (s: number) => {
+    if (s >= 85) return "text-green-500";
+    if (s >= 65) return "text-yellow-500";
+    return "text-red-500";
   };
 
   return (
@@ -105,90 +231,166 @@ export function ReactionTest() {
         <h3 className="text-3xl md:text-4xl font-bold mb-4">
           {t("reactionTest.title")}
         </h3>
-
         <p className="text-gray-400 mb-8">
           {t("reactionTest.subtitle")}
         </p>
 
-        <div
-          onClick={handleClick}
-          className={`
-            relative w-full h-64 md:h-80 rounded-lg border-2
-            flex items-center justify-center cursor-pointer
-            transition-all duration-200 mb-6 overflow-hidden
-            ${state === "idle" && "border-gray-800 bg-gray-900 hover:border-red-600/50"}
-            ${state === "waiting" && "border-red-600 bg-red-600/10 animate-pulse"}
-            ${state === "ready" && "border-green-500 bg-green-500/20 animate-pulse"}
-            ${state === "result" && "border-gray-800 bg-gray-900"}
-          `}
-        >
-          {state === "idle" && (
-            <div className="text-center">
-              <svg className="w-12 h-12 text-gray-600 mx-auto mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
-              </svg>
-              <p className="text-lg font-semibold">{t("reactionTest.clickToStart")}</p>
-              <p className="text-sm text-gray-500 mt-2">
-                {t("reactionTest.clickOnGreen")}
-              </p>
-            </div>
-          )}
-
-          {state === "waiting" && (
-            <div className="text-center">
-              <p className="text-lg font-semibold text-red-600">{t("reactionTest.wait")}</p>
-              <p className="text-sm text-gray-400 mt-2">
-                {t("reactionTest.dontClick")}
-              </p>
-            </div>
-          )}
-
-          {state === "ready" && (
-            <div className="text-center">
-              <p className="text-2xl font-bold text-green-500 animate-pulse">
-                {t("reactionTest.clickNow")}
-              </p>
-            </div>
-          )}
-
-          {state === "result" && (
-            <div className="text-center px-4">
-              <div className={`text-5xl md:text-6xl font-bold mb-2 ${getTierColor()}`}>
-                {reactionTime}ms
+        {/* Game area */}
+        {(state === "idle" || state === "countdown" || state === "playing") && (
+          <div
+            onClick={state === "idle" ? startGame : handleAreaClick}
+            className="relative w-full h-80 rounded-lg border-2 border-gray-800 bg-black overflow-hidden cursor-pointer mb-6 select-none"
+          >
+            {state === "idle" && (
+              <div className="absolute inset-0 flex flex-col items-center justify-center gap-3">
+                <p className="text-lg font-semibold">{t("reactionTest.clickToStart")}</p>
+                <p className="text-sm text-gray-500">{t("reactionTest.instructions")}</p>
               </div>
-              <div className="text-sm text-gray-400 mb-4">
-                {t("reactionTest.fasterThan")} {percentile}% {t("reactionTest.ofPlayers")}
+            )}
+
+            {state === "countdown" && (
+              <div className="absolute inset-0 flex items-center justify-center">
+                <span className="text-8xl font-bold text-white">{countdown}</span>
               </div>
-              <div className={`text-2xl font-bold mb-6 ${getTierColor()}`}>
-                {t(`reactionTest.tier${tier}`)}
+            )}
+
+            {state === "playing" && (
+              <>
+                <div className="absolute top-3 left-4 text-xs text-gray-500">
+                  {progress}/{TOTAL_CIRCLES}
+                </div>
+                {circle && (
+                  <button
+                    onClick={handleCircleClick}
+                    className={`absolute w-14 h-14 rounded-full transition-transform active:scale-90 ${
+                      circle.type === "green"
+                        ? "bg-green-500 shadow-lg shadow-green-500/50 hover:bg-green-400"
+                        : "bg-red-600 shadow-lg shadow-red-600/50 hover:bg-red-500"
+                    }`}
+                    style={{
+                      left: `calc(${circle.x}% - 28px)`,
+                      top: `calc(${circle.y}% - 28px)`,
+                    }}
+                  />
+                )}
+              </>
+            )}
+          </div>
+        )}
+
+        {/* Results */}
+        {state === "results" && (
+          <div className="mb-8">
+            <div className={`text-8xl font-bold mb-1 ${getScoreColor(score)}`}>{score}</div>
+            <div className={`text-xl font-semibold mb-8 ${getScoreColor(score)}`}>{getScoreLabel(score)}</div>
+            <div className="grid grid-cols-3 gap-4 mb-8">
+              <div className="p-4 rounded-lg bg-black border border-gray-800">
+                <div className="text-2xl font-bold">{avgMs}ms</div>
+                <div className="text-xs text-gray-500 mt-1">{t("reactionTest.avgReaction")}</div>
+              </div>
+              <div className="p-4 rounded-lg bg-black border border-gray-800">
+                <div className="text-2xl font-bold text-red-500">{missedCount}</div>
+                <div className="text-xs text-gray-500 mt-1">{t("reactionTest.missed")}</div>
+              </div>
+              <div className="p-4 rounded-lg bg-black border border-gray-800">
+                <div className="text-2xl font-bold text-red-500">{falseCount}</div>
+                <div className="text-xs text-gray-500 mt-1">{t("reactionTest.falseCl")}</div>
               </div>
             </div>
-          )}
-        </div>
-
-        {state === "result" ? (
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Button size="lg" onClick={scrollToBeta}>
-              {t("reactionTest.btnUnlock")}
+            <Button size="lg" onClick={() => setState("form")} className="w-full mb-3">
+              {t("reactionTest.btnSaveResult")}
             </Button>
-            <Button size="lg" variant="outline" onClick={reset}>
+            <button onClick={reset} className="text-sm text-gray-500 hover:text-gray-300 transition-colors">
+              {t("reactionTest.btnTryAgain")}
+            </button>
+          </div>
+        )}
+
+        {/* Form */}
+        {state === "form" && (
+          <div className="text-left space-y-6 max-w-md mx-auto">
+            <div>
+              <label className="block text-sm font-semibold mb-2 uppercase tracking-wide">
+                {t("reactionTest.formNickname")}
+              </label>
+              <Input
+                type="text"
+                placeholder={t("reactionTest.formNicknamePlaceholder")}
+                value={nickname}
+                onChange={(e) => setNickname(e.target.value)}
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-semibold mb-3 uppercase tracking-wide">
+                {t("reactionTest.formSleep")}: <span className="text-red-600">{sleepHours}ч</span>
+              </label>
+              <input
+                type="range" min="1" max="12" value={sleepHours}
+                onChange={(e) => setSleepHours(Number(e.target.value))}
+                className="w-full accent-red-600"
+              />
+              <div className="flex justify-between text-xs text-gray-500 mt-1">
+                <span>1ч</span><span>12ч</span>
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-sm font-semibold mb-3 uppercase tracking-wide">
+                {t("reactionTest.formStress")}: <span className="text-red-600">{stress}/10</span>
+              </label>
+              <input
+                type="range" min="1" max="10" value={stress}
+                onChange={(e) => setStress(Number(e.target.value))}
+                className="w-full accent-red-600"
+              />
+              <div className="flex justify-between text-xs text-gray-500 mt-1">
+                <span>1</span><span>10</span>
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-sm font-semibold mb-3 uppercase tracking-wide">
+                {t("reactionTest.formMotivation")}: <span className="text-red-600">{motivation}/10</span>
+              </label>
+              <input
+                type="range" min="1" max="10" value={motivation}
+                onChange={(e) => setMotivation(Number(e.target.value))}
+                className="w-full accent-red-600"
+              />
+              <div className="flex justify-between text-xs text-gray-500 mt-1">
+                <span>1</span><span>10</span>
+              </div>
+            </div>
+
+            {saveError && <p className="text-sm text-red-500">{saveError}</p>}
+
+            <Button size="lg" className="w-full" onClick={handleSave} disabled={saving}>
+              {saving ? t("reactionTest.btnSaving") : t("reactionTest.btnSave")}
+            </Button>
+          </div>
+        )}
+
+        {/* Saved */}
+        {state === "saved" && (
+          <div className="py-8">
+            <div className="w-16 h-16 rounded-full bg-green-500/20 flex items-center justify-center mx-auto mb-6">
+              <svg className="w-8 h-8 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+              </svg>
+            </div>
+            <h4 className="text-xl font-bold mb-3">{t("reactionTest.savedTitle")}</h4>
+            <p className="text-gray-400 mb-8">{t("reactionTest.savedMessage")}</p>
+            <Button variant="outline" onClick={reset}>
               {t("reactionTest.btnTryAgain")}
             </Button>
           </div>
-        ) : state === "idle" ? (
-          <Button size="lg" onClick={startTest}>
+        )}
+
+        {state === "idle" && (
+          <Button size="lg" onClick={startGame}>
             {t("reactionTest.btnStart")}
           </Button>
-        ) : null}
-
-        {state === "result" && (
-          <p className="text-xs text-gray-500 mt-6">
-            {t("reactionTest.note1")}
-            <br />
-            <span className="text-white font-semibold">
-              {t("reactionTest.note2")}
-            </span>
-          </p>
         )}
       </div>
     </section>
