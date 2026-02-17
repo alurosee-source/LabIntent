@@ -1,21 +1,19 @@
 export function DashboardMockup() {
   const players = [
-    { name: "Player_1", reaction: "+2%", stress: "4/10", sleep: "8ч", status: "ready" },
+    { name: "Player_1", reaction: "+2%",  stress: "4/10", sleep: "8ч", status: "ready" },
     { name: "Player_2", reaction: "−15%", stress: "8/10", sleep: "5ч", status: "warning" },
-    { name: "Player_3", reaction: "−3%", stress: "5/10", sleep: "7ч", status: "ready" },
+    { name: "Player_3", reaction: "−3%",  stress: "5/10", sleep: "7ч", status: "ready" },
+    { name: "Player_4", reaction: "−8%",  stress: "6/10", sleep: "6ч", status: "warning" },
+    { name: "Player_5", reaction: "+1%",  stress: "3/10", sleep: "8ч", status: "ready" },
   ];
 
   return (
-    <section className="py-20 px-4 bg-black">
+    <section className="py-16 px-4 bg-black">
       <div className="max-w-4xl mx-auto">
-        <div className="text-center mb-10">
-          <h2 className="text-sm font-semibold uppercase tracking-wider text-red-600 mb-3">
-            Дашборд тренера
-          </h2>
-          <h3 className="text-3xl md:text-4xl font-bold mb-4">
-            Как выглядит отчёт
+        <div className="text-center mb-8">
+          <h3 className="text-2xl md:text-3xl font-bold">
+            Так это видит тренер по всей команде
           </h3>
-          <p className="text-gray-400 text-sm">Пример. Реальные данные появляются после 5 дней тестирования.</p>
         </div>
 
         <div className="rounded-lg border border-gray-800 bg-gray-900/50 overflow-hidden">
@@ -70,7 +68,7 @@ export function DashboardMockup() {
 
           <div className="px-6 py-3 border-t border-gray-800">
             <p className="text-xs text-gray-600">
-              Пример отчёта. Реальные данные появляются после 5 дней тестирования.
+              Пример. Реальные данные появляются после 5 дней тестирования.
             </p>
           </div>
         </div>
