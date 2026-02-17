@@ -44,6 +44,7 @@ export function ReactionTest() {
   const [falseCount, setFalseCount] = useState(0);
 
   // Form
+  const [teamName, setTeamName] = useState("");
   const [nickname, setNickname] = useState("");
   const [sleepHours, setSleepHours] = useState(7);
   const [stress, setStress] = useState(5);
@@ -169,6 +170,7 @@ export function ReactionTest() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           nickname: nickname || "Anonymous",
+          team_name: teamName || null,
           avg_reaction_ms: avgMs,
           missed_targets: missedCount,
           false_clicks: falseCount,
@@ -196,6 +198,7 @@ export function ReactionTest() {
     setMissedCount(0);
     setFalseCount(0);
     setNickname("");
+    setTeamName("");
     setSleepHours(7);
     setStress(5);
     setMotivation(5);
@@ -242,6 +245,24 @@ export function ReactionTest() {
 
         {/* Game area */}
         {(state === "idle" || state === "countdown" || state === "playing") && (
+          <>
+            {state === "idle" && (
+              <div className="mb-4 text-left">
+                <label className="block text-sm font-semibold mb-2 uppercase tracking-wide text-gray-400">
+                  Название команды
+                </label>
+                <Input
+                  type="text"
+                  placeholder="Введите название вашей команды"
+                  value={teamName}
+                  onChange={(e) => setTeamName(e.target.value)}
+                  onClick={(e) => e.stopPropagation()}
+                />
+                <p className="text-xs text-gray-600 mt-1">
+                  Необязательно — нужно для отображения в дашборде тренера
+                </p>
+              </div>
+            )}
           <div
             onClick={state === "idle" ? startGame : handleAreaClick}
             className="relative w-full h-80 rounded-lg border-2 border-gray-800 bg-black overflow-hidden cursor-pointer mb-6 select-none"
@@ -281,6 +302,7 @@ export function ReactionTest() {
               </>
             )}
           </div>
+          </>
         )}
 
         {/* Results */}

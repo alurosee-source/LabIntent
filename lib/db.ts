@@ -35,6 +35,7 @@ export async function initDatabase() {
     CREATE TABLE IF NOT EXISTS test_results (
       id SERIAL PRIMARY KEY,
       nickname TEXT,
+      team_name TEXT,
       created_at TIMESTAMP DEFAULT NOW(),
       avg_reaction_ms INTEGER,
       missed_targets INTEGER,
@@ -47,12 +48,26 @@ export async function initDatabase() {
   `;
 
   await sql`
+    ALTER TABLE test_results ADD COLUMN IF NOT EXISTS team_name TEXT
+  `;
+
+  await sql`
     CREATE TABLE IF NOT EXISTS coach_applications (
       id SERIAL PRIMARY KEY,
       name TEXT,
       team_name TEXT,
       contact TEXT,
       team_size TEXT,
+      created_at TIMESTAMP DEFAULT NOW()
+    )
+  `;
+
+  await sql`
+    CREATE TABLE IF NOT EXISTS coaches (
+      id SERIAL PRIMARY KEY,
+      email TEXT NOT NULL UNIQUE,
+      password_hash TEXT NOT NULL,
+      team_name TEXT NOT NULL,
       created_at TIMESTAMP DEFAULT NOW()
     )
   `;
