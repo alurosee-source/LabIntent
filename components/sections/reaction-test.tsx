@@ -21,12 +21,14 @@ function shuffle<T>(arr: T[]): T[] {
 }
 
 function calcScore(avgMs: number, missed: number, falseCl: number): number {
-  let s = 100;
-  s -= falseCl * 5;
-  s -= missed * 3;
-  if (avgMs > 500) s -= 20;
-  else if (avgMs > 400) s -= 10;
-  return Math.max(0, s);
+  let base: number;
+  if (avgMs < 180) base = 100;
+  else if (avgMs < 250) base = 85;
+  else if (avgMs < 350) base = 70;
+  else if (avgMs < 450) base = 50;
+  else if (avgMs < 550) base = 30;
+  else base = 15;
+  return Math.max(0, base - falseCl * 8 - missed * 5);
 }
 
 export function ReactionTest() {
@@ -151,10 +153,7 @@ export function ReactionTest() {
   };
 
   const handleAreaClick = () => {
-    if (state !== "playing") return;
-    if (!circle) {
-      falseRef.current++;
-    }
+    // Clicks on empty area don't count — only red circle clicks are false_click
   };
 
   const handleSave = async () => {
@@ -205,14 +204,16 @@ export function ReactionTest() {
   }, []);
 
   const getScoreLabel = (s: number) => {
-    if (s >= 85) return t("reactionTest.scoreExcellent");
-    if (s >= 65) return t("reactionTest.scoreNormal");
-    return t("reactionTest.scoreRest");
+    if (s >= 85) return "Топовая форма";
+    if (s >= 65) return "Хорошая форма";
+    if (s >= 45) return "Средняя форма — разомнись перед игрой";
+    return "Низкая готовность — рекомендуем отдых";
   };
 
   const getScoreColor = (s: number) => {
     if (s >= 85) return "text-green-500";
-    if (s >= 65) return "text-yellow-500";
+    if (s >= 65) return "text-green-400";
+    if (s >= 45) return "text-yellow-500";
     return "text-red-500";
   };
 
@@ -283,20 +284,26 @@ export function ReactionTest() {
           <div className="mb-8">
             <div className={`text-8xl font-bold mb-1 ${getScoreColor(score)}`}>{score}</div>
             <div className={`text-xl font-semibold mb-8 ${getScoreColor(score)}`}>{getScoreLabel(score)}</div>
-            <div className="grid grid-cols-3 gap-4 mb-8">
-              <div className="p-4 rounded-lg bg-black border border-gray-800">
-                <div className="text-2xl font-bold">{avgMs}ms</div>
-                <div className="text-xs text-gray-500 mt-1">{t("reactionTest.avgReaction")}</div>
+
+            <div className="text-left rounded-lg bg-black border border-gray-800 divide-y divide-gray-800 mb-8">
+              <div className="flex justify-between items-center px-5 py-3">
+                <span className="text-sm text-gray-400">Среднее время реакции</span>
+                <span className="text-sm font-bold font-mono">{avgMs} мс</span>
               </div>
-              <div className="p-4 rounded-lg bg-black border border-gray-800">
-                <div className="text-2xl font-bold text-red-500">{missedCount}</div>
-                <div className="text-xs text-gray-500 mt-1">{t("reactionTest.missed")}</div>
+              <div className="flex justify-between items-center px-5 py-3">
+                <span className="text-sm text-gray-400">Пропущено целей</span>
+                <span className={`text-sm font-bold font-mono ${missedCount > 0 ? "text-red-500" : "text-gray-300"}`}>{missedCount}</span>
               </div>
-              <div className="p-4 rounded-lg bg-black border border-gray-800">
-                <div className="text-2xl font-bold text-red-500">{falseCount}</div>
-                <div className="text-xs text-gray-500 mt-1">{t("reactionTest.falseCl")}</div>
+              <div className="flex justify-between items-center px-5 py-3">
+                <span className="text-sm text-gray-400">Ложных нажатий</span>
+                <span className={`text-sm font-bold font-mono ${falseCount > 0 ? "text-red-500" : "text-gray-300"}`}>{falseCount}</span>
+              </div>
+              <div className="flex justify-between items-center px-5 py-3">
+                <span className="text-sm text-gray-400">Итоговый score</span>
+                <span className={`text-sm font-bold font-mono ${getScoreColor(score)}`}>{score}</span>
               </div>
             </div>
+
             <Button size="lg" onClick={() => setState("form")} className="w-full mb-3">
               {t("reactionTest.btnSaveResult")}
             </Button>
