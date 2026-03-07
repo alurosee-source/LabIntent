@@ -6,10 +6,10 @@ export function HeroCoach() {
           Tool for professional CS teams
         </div>
         <h1 className="text-4xl md:text-6xl font-bold leading-tight mb-5">
-          Know which players are sharp today — before the match starts.
+          Know who's ready before the match.
         </h1>
         <p className="text-lg md:text-xl text-gray-400 max-w-xl mx-auto">
-          A 3-minute pre-match check that gives coaches an objective signal on player readiness — not based on what they say, but on how they actually perform.
+          A 3-minute check that shows you which players are sharp today, not based on what they say.
         </p>
       </div>
     </section>
