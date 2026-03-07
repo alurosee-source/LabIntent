@@ -482,18 +482,15 @@ export function ReactionTest() {
                   className={`aspect-square rounded-md text-lg font-bold transition-colors ${
                     num < schulteNext
                       ? "bg-gray-800 text-gray-600 cursor-default"
-                      : num === schulteNext
-                      ? "bg-red-600/20 border border-red-600 text-white hover:bg-red-600/40"
-                      : "bg-gray-900 border border-gray-800 text-gray-300 hover:bg-gray-800"
+                      : "bg-gray-900 border border-gray-800 text-gray-300 hover:bg-gray-800 active:scale-95"
                   }`}
-                  disabled={num < schulteNext}
                 >
                   {num}
                 </button>
               ))}
             </div>
             <div className="text-sm text-gray-500">
-              Next: <span className="text-white font-bold">{schulteNext}</span>
+              Find and click: <span className="text-white font-bold">{schulteNext}</span>
             </div>
           </div>
         )}
