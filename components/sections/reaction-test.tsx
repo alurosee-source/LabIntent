@@ -17,7 +17,7 @@ type GameState =
 
 const TOTAL_CIRCLES = 30;
 const GREEN_CIRCLES = 20;
-const CIRCLE_VISIBLE_MS = 1000;
+const CIRCLE_VISIBLE_MS = 1500;
 
 const LUSCHER_COLORS = [
   { id: 0, hex: "#2c52b8", category: "calm" as const },
@@ -211,7 +211,7 @@ export function ReactionTest() {
     nextTimerRef.current = setTimeout(tick, 1000);
   }, [showNextCircle]);
 
-  const handleCircleClick = (e: React.MouseEvent) => {
+  const handleCircleClick = (e: React.PointerEvent) => {
     e.stopPropagation();
     if (clickedRef.current || !circleTypeRef.current) return;
     clickedRef.current = true;
@@ -426,15 +426,16 @@ export function ReactionTest() {
                   </div>
                   {circle && (
                     <button
-                      onClick={handleCircleClick}
-                      className={`absolute w-14 h-14 rounded-full transition-transform active:scale-90 ${
+                      onPointerDown={handleCircleClick}
+                      className={`absolute w-[120px] h-[120px] md:w-20 md:h-20 rounded-full transition-transform active:scale-90 touch-none ${
                         circle.type === "green"
                           ? "bg-green-500 shadow-lg shadow-green-500/50 hover:bg-green-400"
                           : "bg-red-600 shadow-lg shadow-red-600/50 hover:bg-red-500"
                       }`}
                       style={{
-                        left: `calc(${circle.x}% - 28px)`,
-                        top: `calc(${circle.y}% - 28px)`,
+                        left: `${circle.x}%`,
+                        top: `${circle.y}%`,
+                        transform: "translate(-50%, -50%)",
                       }}
                     />
                   )}
