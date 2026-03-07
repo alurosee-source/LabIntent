@@ -427,15 +427,14 @@ export function ReactionTest() {
                   {circle && (
                     <button
                       onPointerDown={handleCircleClick}
-                      className={`absolute w-[120px] h-[120px] md:w-20 md:h-20 rounded-full transition-transform active:scale-90 touch-none ${
+                      className={`absolute w-14 h-14 rounded-full transition-transform active:scale-90 touch-none ${
                         circle.type === "green"
                           ? "bg-green-500 shadow-lg shadow-green-500/50 hover:bg-green-400"
                           : "bg-red-600 shadow-lg shadow-red-600/50 hover:bg-red-500"
                       }`}
                       style={{
-                        left: `${circle.x}%`,
-                        top: `${circle.y}%`,
-                        transform: "translate(-50%, -50%)",
+                        left: `calc(${circle.x}% - 28px)`,
+                        top: `calc(${circle.y}% - 28px)`,
                       }}
                     />
                   )}
