@@ -4,7 +4,7 @@ import { getDb, initDatabase } from '@/lib/db';
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { nickname, team_name, avg_reaction_ms, missed_targets, false_clicks, score, sleep_hours, cancellation_answer } = body;
+    const { nickname, team_name, avg_reaction_ms, missed_targets, false_clicks, score, sleep_hours, cancellation_answer, schulte_time, luscher_result, ai_state } = body;
 
     if (
       avg_reaction_ms === undefined ||
@@ -21,8 +21,8 @@ export async function POST(request: NextRequest) {
     const sql = getDb();
 
     const result = await sql`
-      INSERT INTO test_results (nickname, team_name, avg_reaction_ms, missed_targets, false_clicks, score, sleep_hours, cancellation_answer)
-      VALUES (${nickname || 'Anonymous'}, ${team_name || null}, ${avg_reaction_ms}, ${missed_targets}, ${false_clicks}, ${score}, ${sleep_hours}, ${cancellation_answer || null})
+      INSERT INTO test_results (nickname, team_name, avg_reaction_ms, missed_targets, false_clicks, score, sleep_hours, cancellation_answer, schulte_time, luscher_result, ai_state)
+      VALUES (${nickname || 'Anonymous'}, ${team_name || null}, ${avg_reaction_ms}, ${missed_targets}, ${false_clicks}, ${score}, ${sleep_hours}, ${cancellation_answer || null}, ${schulte_time || null}, ${luscher_result || null}, ${ai_state || null})
       RETURNING id, created_at
     `;
 

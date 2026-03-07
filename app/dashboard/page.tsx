@@ -39,7 +39,7 @@ export default async function DashboardPage() {
 
   const sql = getDb();
   const rows = await sql`
-    SELECT id, nickname, score, sleep_hours, cancellation_answer, created_at
+    SELECT id, nickname, score, sleep_hours, cancellation_answer, schulte_time, luscher_result, ai_state, created_at
     FROM test_results
     WHERE team_name = ${session.teamName}
     ORDER BY created_at DESC
@@ -97,6 +97,8 @@ export default async function DashboardPage() {
                     <th className="text-left px-4 py-3 text-xs uppercase tracking-wider text-gray-500 font-semibold">Date</th>
                     <th className="text-right px-4 py-3 text-xs uppercase tracking-wider text-gray-500 font-semibold">Score</th>
                     <th className="text-right px-4 py-3 text-xs uppercase tracking-wider text-gray-500 font-semibold">Sleep</th>
+                    <th className="text-right px-4 py-3 text-xs uppercase tracking-wider text-gray-500 font-semibold">Schulte</th>
+                    <th className="text-left px-4 py-3 text-xs uppercase tracking-wider text-gray-500 font-semibold">Mood</th>
                     <th className="text-left px-4 py-3 text-xs uppercase tracking-wider text-gray-500 font-semibold">If match cancelled...</th>
                   </tr>
                 </thead>
@@ -120,10 +122,36 @@ export default async function DashboardPage() {
                       <td className={`px-4 py-4 text-right font-mono ${row.sleep_hours <= 5 ? "text-yellow-500" : "text-gray-400"}`}>
                         {row.sleep_hours}h
                       </td>
+                      <td className="px-4 py-4 text-right font-mono text-gray-400">
+                        {row.schulte_time ? `${row.schulte_time}s` : <span className="text-gray-700">—</span>}
+                      </td>
+                      <td className="px-4 py-4">
+                        {row.luscher_result ? (
+                          <span className={`inline-block px-2 py-0.5 rounded text-xs font-semibold ${
+                            row.luscher_result === "calm" ? "bg-green-900/50 text-green-400" :
+                            row.luscher_result === "stress" ? "bg-yellow-900/50 text-yellow-400" :
+                            "bg-gray-800 text-gray-400"
+                          }`}>
+                            {row.luscher_result}
+                          </span>
+                        ) : <span className="text-gray-700">—</span>}
+                      </td>
                       <td className="px-4 py-4 text-gray-300 italic max-w-sm">
-                        {row.cancellation_answer
-                          ? `"${row.cancellation_answer}"`
-                          : <span className="text-gray-700 not-italic">—</span>}
+                        {row.cancellation_answer ? (
+                          <div>
+                            <span>{`"${row.cancellation_answer}"`}</span>
+                            {row.ai_state && (
+                              <span className={`ml-2 inline-block px-2 py-0.5 rounded text-xs font-semibold not-italic ${
+                                row.ai_state === "Fatigue" ? "bg-gray-800 text-gray-400" :
+                                row.ai_state === "Mobilizing stress" ? "bg-yellow-900/50 text-yellow-400" :
+                                row.ai_state === "Anxiety" ? "bg-red-900/50 text-red-400" :
+                                "bg-gray-900 text-gray-600 border border-gray-800"
+                              }`}>
+                                {row.ai_state}
+                              </span>
+                            )}
+                          </div>
+                        ) : <span className="text-gray-700 not-italic">—</span>}
                       </td>
                     </tr>
                   ))}

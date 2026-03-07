@@ -4,11 +4,62 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useState, useRef, useEffect, useCallback } from "react";
 
-type GameState = "idle" | "countdown" | "playing" | "results" | "form" | "saved";
+type GameState =
+  | "idle"
+  | "countdown"
+  | "playing"
+  | "results"
+  | "schulte"
+  | "luscher"
+  | "form"
+  | "saving"
+  | "saved";
 
 const TOTAL_CIRCLES = 30;
 const GREEN_CIRCLES = 20;
 const CIRCLE_VISIBLE_MS = 1000;
+
+const LUSCHER_COLORS = [
+  { id: 0, hex: "#2c52b8", category: "calm" as const },
+  { id: 1, hex: "#3d8b4c", category: "calm" as const },
+  { id: 2, hex: "#cc2222", category: "stress" as const },
+  { id: 3, hex: "#e8c830", category: "stress" as const },
+  { id: 4, hex: "#7b3fa0", category: "stress" as const },
+  { id: 5, hex: "#8b5a2b", category: "exhausted" as const },
+  { id: 6, hex: "#2a2a2a", category: "exhausted" as const },
+  { id: 7, hex: "#808080", category: "exhausted" as const },
+];
+
+type LuscherCategory = "calm" | "stress" | "exhausted";
+
+function computeLuscherResult(
+  seq1: number[],
+  seq2: number[]
+): LuscherCategory {
+  const counts: Record<LuscherCategory, number> = { calm: 0, stress: 0, exhausted: 0 };
+  // Top 3 from each round
+  for (const seq of [seq1, seq2]) {
+    seq.slice(0, 3).forEach((id) => {
+      const cat = LUSCHER_COLORS.find((c) => c.id === id)!.category;
+      counts[cat]++;
+    });
+  }
+  return (Object.keys(counts) as LuscherCategory[]).reduce((a, b) =>
+    counts[a] >= counts[b] ? a : b
+  );
+}
+
+function classifyAnswer(answer: string): string | null {
+  const text = answer.toLowerCase();
+  const fatigue = ["relieved", "tired", "sleep", "rest", "exhausted", "finally", "thank god", "need a break"];
+  const mobilizing = ["disappointed", "want to play", "ready", "pumped", "focused", "let's go", "fired up", "motivated"];
+  const anxiety = ["nervous", "scared", "anxious", "worried", "pressure", "stressed", "can't", "afraid"];
+
+  if (fatigue.some((w) => text.includes(w))) return "Fatigue";
+  if (mobilizing.some((w) => text.includes(w))) return "Mobilizing stress";
+  if (anxiety.some((w) => text.includes(w))) return "Anxiety";
+  return "No clear signal";
+}
 
 function shuffle<T>(arr: T[]): T[] {
   const result = [...arr];
@@ -36,18 +87,30 @@ export function ReactionTest() {
   const [circle, setCircle] = useState<{ type: "green" | "red"; x: number; y: number } | null>(null);
   const [progress, setProgress] = useState(0);
 
-  // Final results
+  // Reaction results
   const [score, setScore] = useState(0);
   const [avgMs, setAvgMs] = useState(0);
   const [missedCount, setMissedCount] = useState(0);
   const [falseCount, setFalseCount] = useState(0);
+
+  // Schulte table
+  const [schulteGrid, setSchulteGrid] = useState<number[]>([]);
+  const [schulteNext, setSchulteNext] = useState(1);
+  const [schulteTime, setSchulteTime] = useState(0);
+  const schulteStartRef = useRef<number>(0);
+
+  // Luscher color test
+  const [luscherRound, setLuscherRound] = useState(1);
+  const [luscherRemaining, setLuscherRemaining] = useState<number[]>(LUSCHER_COLORS.map((c) => c.id));
+  const [luscherSeq1, setLuscherSeq1] = useState<number[]>([]);
+  const [luscherSeq2, setLuscherSeq2] = useState<number[]>([]);
+  const [luscherResult, setLuscherResult] = useState<LuscherCategory | null>(null);
 
   // Form
   const [teamName, setTeamName] = useState("");
   const [nickname, setNickname] = useState("");
   const [sleepHours, setSleepHours] = useState(7);
   const [cancellationAnswer, setCancellationAnswer] = useState("");
-  const [saving, setSaving] = useState(false);
   const [saveError, setSaveError] = useState("");
 
   // Game refs (avoid stale closures in timers)
@@ -153,13 +216,66 @@ export function ReactionTest() {
     nextTimerRef.current = setTimeout(showNextCircle, delay);
   };
 
-  const handleAreaClick = () => {
-    // Clicks on empty area don't count — only red circle clicks are false_click
+  const startSchulte = () => {
+    setSchulteGrid(shuffle(Array.from({ length: 25 }, (_, i) => i + 1)));
+    setSchulteNext(1);
+    setSchulteTime(0);
+    schulteStartRef.current = 0; // will be set on first click
+    setState("schulte");
+  };
+
+  const handleSchulteClick = (num: number) => {
+    if (num !== schulteNext) return;
+    if (schulteNext === 1) {
+      schulteStartRef.current = Date.now();
+    }
+    if (schulteNext === 25) {
+      const elapsed = Math.round((Date.now() - schulteStartRef.current) / 1000);
+      setSchulteTime(elapsed);
+      // Start Luscher
+      setLuscherRound(1);
+      setLuscherRemaining(LUSCHER_COLORS.map((c) => c.id));
+      setLuscherSeq1([]);
+      setLuscherSeq2([]);
+      setLuscherResult(null);
+      setState("luscher");
+    } else {
+      setSchulteNext(schulteNext + 1);
+    }
+  };
+
+  const handleLuscherPick = (id: number) => {
+    const remaining = luscherRemaining.filter((x) => x !== id);
+    if (luscherRound === 1) {
+      const seq1 = [...luscherSeq1, id];
+      setLuscherSeq1(seq1);
+      if (remaining.length === 0) {
+        // Start round 2
+        setLuscherRound(2);
+        setLuscherRemaining(LUSCHER_COLORS.map((c) => c.id));
+        setLuscherSeq2([]);
+      } else {
+        setLuscherRemaining(remaining);
+      }
+    } else {
+      const seq2 = [...luscherSeq2, id];
+      setLuscherSeq2(seq2);
+      if (remaining.length === 0) {
+        const result = computeLuscherResult(luscherSeq1, seq2);
+        setLuscherResult(result);
+        setState("form");
+      } else {
+        setLuscherRemaining(remaining);
+      }
+    }
   };
 
   const handleSave = async () => {
-    setSaving(true);
+    setState("saving");
     setSaveError("");
+
+    const aiState = cancellationAnswer.trim() ? classifyAnswer(cancellationAnswer) : null;
+
     try {
       const res = await fetch("/api/save-result", {
         method: "POST",
@@ -173,14 +289,16 @@ export function ReactionTest() {
           score,
           sleep_hours: sleepHours,
           cancellation_answer: cancellationAnswer || null,
+          schulte_time: schulteTime || null,
+          luscher_result: luscherResult || null,
+          ai_state: aiState,
         }),
       });
       if (!res.ok) throw new Error("failed");
       setState("saved");
     } catch {
       setSaveError("Failed to save. Please try again.");
-    } finally {
-      setSaving(false);
+      setState("form");
     }
   };
 
@@ -198,6 +316,9 @@ export function ReactionTest() {
     setCancellationAnswer("");
     setSaveError("");
     setProgress(0);
+    setSchulteNext(1);
+    setSchulteTime(0);
+    setLuscherResult(null);
   };
 
   useEffect(() => {
@@ -237,7 +358,7 @@ export function ReactionTest() {
           Click green circles as fast as you can. Ignore red ones.
         </p>
 
-        {/* Game area */}
+        {/* Reaction test area */}
         {(state === "idle" || state === "countdown" || state === "playing") && (
           <>
             {state === "idle" && (
@@ -268,7 +389,7 @@ export function ReactionTest() {
               </div>
             )}
             <div
-              onClick={state === "idle" ? startGame : handleAreaClick}
+              onClick={state === "idle" ? startGame : undefined}
               className="relative w-full h-80 rounded-lg border-2 border-gray-800 bg-black overflow-hidden cursor-pointer mb-6 select-none"
             >
               {state === "idle" && (
@@ -334,8 +455,8 @@ export function ReactionTest() {
               </div>
             </div>
 
-            <Button size="lg" onClick={() => setState("form")} className="w-full mb-3">
-              Save result
+            <Button size="lg" onClick={startSchulte} className="w-full mb-3">
+              Continue →
             </Button>
             <button onClick={reset} className="text-sm text-gray-500 hover:text-gray-300 transition-colors">
               Try again
@@ -343,9 +464,74 @@ export function ReactionTest() {
           </div>
         )}
 
+        {/* Schulte table */}
+        {state === "schulte" && (
+          <div className="mb-8">
+            <div className="mb-2 text-sm text-gray-400 uppercase tracking-wider font-semibold">
+              Step 2 of 4 — Attention test
+            </div>
+            <p className="text-gray-400 mb-1">
+              Click numbers <span className="text-white font-bold">1 → 25</span> in order as fast as you can
+            </p>
+            <p className="text-xs text-gray-600 mb-6">Timer starts on your first click</p>
+            <div className="grid grid-cols-5 gap-2 max-w-xs mx-auto mb-6">
+              {schulteGrid.map((num) => (
+                <button
+                  key={num}
+                  onClick={() => handleSchulteClick(num)}
+                  className={`aspect-square rounded-md text-lg font-bold transition-colors ${
+                    num < schulteNext
+                      ? "bg-gray-800 text-gray-600 cursor-default"
+                      : num === schulteNext
+                      ? "bg-red-600/20 border border-red-600 text-white hover:bg-red-600/40"
+                      : "bg-gray-900 border border-gray-800 text-gray-300 hover:bg-gray-800"
+                  }`}
+                  disabled={num < schulteNext}
+                >
+                  {num}
+                </button>
+              ))}
+            </div>
+            <div className="text-sm text-gray-500">
+              Next: <span className="text-white font-bold">{schulteNext}</span>
+            </div>
+          </div>
+        )}
+
+        {/* Luscher color test */}
+        {state === "luscher" && (
+          <div className="mb-8">
+            <div className="mb-2 text-sm text-gray-400 uppercase tracking-wider font-semibold">
+              Step 3 of 4 — Color preference
+            </div>
+            <p className="text-gray-400 mb-1">
+              Pick colors in order of preference, most appealing first
+            </p>
+            <p className="text-xs text-gray-600 mb-6">Round {luscherRound} of 2</p>
+            <div className="flex flex-wrap gap-3 justify-center mb-6">
+              {luscherRemaining.map((id) => {
+                const color = LUSCHER_COLORS.find((c) => c.id === id)!;
+                return (
+                  <button
+                    key={id}
+                    onClick={() => handleLuscherPick(id)}
+                    className="w-16 h-16 rounded-lg border-2 border-gray-700 hover:border-white hover:scale-110 transition-all"
+                    style={{ backgroundColor: color.hex }}
+                  />
+                );
+              })}
+            </div>
+            <p className="text-xs text-gray-600">{8 - luscherRemaining.length} of 8 selected</p>
+          </div>
+        )}
+
         {/* Form */}
-        {state === "form" && (
+        {(state === "form" || state === "saving") && (
           <div className="text-left space-y-6 max-w-md mx-auto">
+            <div className="mb-2 text-sm text-gray-400 uppercase tracking-wider font-semibold text-center">
+              Step 4 of 4 — About you
+            </div>
+
             <div>
               <label className="block text-sm font-semibold mb-2 uppercase tracking-wide">
                 Nickname
@@ -355,6 +541,7 @@ export function ReactionTest() {
                 placeholder="Your in-game name"
                 value={nickname}
                 onChange={(e) => setNickname(e.target.value)}
+                disabled={state === "saving"}
               />
             </div>
 
@@ -366,6 +553,7 @@ export function ReactionTest() {
                 type="range" min="1" max="12" value={sleepHours}
                 onChange={(e) => setSleepHours(Number(e.target.value))}
                 className="w-full accent-red-600"
+                disabled={state === "saving"}
               />
               <div className="flex justify-between text-xs text-gray-500 mt-1">
                 <span>1h</span><span>12h</span>
@@ -381,14 +569,15 @@ export function ReactionTest() {
                 value={cancellationAnswer}
                 onChange={(e) => setCancellationAnswer(e.target.value)}
                 rows={3}
-                className="w-full rounded-md border border-gray-700 bg-gray-900 px-4 py-3 text-sm text-white placeholder:text-gray-600 focus:outline-none focus:ring-2 focus:ring-red-600 resize-none"
+                disabled={state === "saving"}
+                className="w-full rounded-md border border-gray-700 bg-gray-900 px-4 py-3 text-sm text-white placeholder:text-gray-600 focus:outline-none focus:ring-2 focus:ring-red-600 resize-none disabled:opacity-50"
               />
             </div>
 
             {saveError && <p className="text-sm text-red-500">{saveError}</p>}
 
-            <Button size="lg" className="w-full" onClick={handleSave} disabled={saving}>
-              {saving ? "Saving..." : "Save result"}
+            <Button size="lg" className="w-full" onClick={handleSave} disabled={state === "saving"}>
+              {state === "saving" ? "Analyzing & saving..." : "Save result"}
             </Button>
           </div>
         )}
