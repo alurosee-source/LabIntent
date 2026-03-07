@@ -14,7 +14,7 @@ export default function RegisterCoachPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setLoading(true);
     setError("");
@@ -27,12 +27,12 @@ export default function RegisterCoachPage() {
       });
       const data = await res.json();
       if (!res.ok) {
-        setError(data.error || "Ошибка регистрации");
+        setError(data.error || "Registration failed");
         return;
       }
       router.push("/dashboard");
     } catch {
-      setError("Ошибка сети. Попробуйте ещё раз.");
+      setError("Network error. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -45,7 +45,7 @@ export default function RegisterCoachPage() {
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-red-600/40 text-red-600 text-xs font-semibold uppercase tracking-wider mb-6">
             Drop Detector
           </div>
-          <h1 className="text-2xl font-bold">Создать команду</h1>
+          <h1 className="text-2xl font-bold">Create a team</h1>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-4">
@@ -57,7 +57,7 @@ export default function RegisterCoachPage() {
 
           <div>
             <label className="block text-sm font-semibold mb-2 uppercase tracking-wide text-gray-400">
-              Название команды
+              Team name
             </label>
             <Input
               type="text"
@@ -68,7 +68,7 @@ export default function RegisterCoachPage() {
               disabled={loading}
             />
             <p className="text-xs text-gray-600 mt-1">
-              Игроки будут вводить это название перед тестом
+              Players will enter this name before taking the test
             </p>
           </div>
 
@@ -88,11 +88,11 @@ export default function RegisterCoachPage() {
 
           <div>
             <label className="block text-sm font-semibold mb-2 uppercase tracking-wide text-gray-400">
-              Пароль
+              Password
             </label>
             <Input
               type="password"
-              placeholder="Минимум 6 символов"
+              placeholder="At least 6 characters"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
@@ -101,20 +101,20 @@ export default function RegisterCoachPage() {
           </div>
 
           <Button type="submit" size="lg" className="w-full mt-2" disabled={loading}>
-            {loading ? "Создаём..." : "Создать команду"}
+            {loading ? "Creating..." : "Create team"}
           </Button>
         </form>
 
         <p className="text-center text-sm text-gray-500 mt-6">
-          Уже есть аккаунт?{" "}
+          Already have an account?{" "}
           <Link href="/login" className="text-red-500 hover:text-red-400 transition-colors">
-            Войти
+            Sign in
           </Link>
         </p>
 
         <p className="text-center mt-4">
           <Link href="/" className="text-xs text-gray-600 hover:text-gray-400 transition-colors">
-            ← На главную
+            ← Back to home
           </Link>
         </p>
       </div>

@@ -3,7 +3,6 @@
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useState, useRef, useEffect, useCallback } from "react";
-import { useLanguage } from "@/lib/language-context";
 
 type GameState = "idle" | "countdown" | "playing" | "results" | "form" | "saved";
 
@@ -47,8 +46,7 @@ export function ReactionTest() {
   const [teamName, setTeamName] = useState("");
   const [nickname, setNickname] = useState("");
   const [sleepHours, setSleepHours] = useState(7);
-  const [stress, setStress] = useState(5);
-  const [motivation, setMotivation] = useState(5);
+  const [cancellationAnswer, setCancellationAnswer] = useState("");
   const [saving, setSaving] = useState(false);
   const [saveError, setSaveError] = useState("");
 
@@ -63,8 +61,6 @@ export function ReactionTest() {
   const circleTimerRef = useRef<NodeJS.Timeout | null>(null);
   const nextTimerRef = useRef<NodeJS.Timeout | null>(null);
   const circleTypeRef = useRef<"green" | "red" | null>(null);
-
-  const { t } = useLanguage();
 
   const clearTimers = () => {
     if (circleTimerRef.current) clearTimeout(circleTimerRef.current);
@@ -176,14 +172,13 @@ export function ReactionTest() {
           false_clicks: falseCount,
           score,
           sleep_hours: sleepHours,
-          stress,
-          motivation,
+          cancellation_answer: cancellationAnswer || null,
         }),
       });
       if (!res.ok) throw new Error("failed");
       setState("saved");
     } catch {
-      setSaveError(t("reactionTest.saveError"));
+      setSaveError("Failed to save. Please try again.");
     } finally {
       setSaving(false);
     }
@@ -200,8 +195,7 @@ export function ReactionTest() {
     setNickname("");
     setTeamName("");
     setSleepHours(7);
-    setStress(5);
-    setMotivation(5);
+    setCancellationAnswer("");
     setSaveError("");
     setProgress(0);
   };
@@ -211,10 +205,10 @@ export function ReactionTest() {
   }, []);
 
   const getScoreLabel = (s: number) => {
-    if (s >= 85) return "Топовая форма";
-    if (s >= 65) return "Хорошая форма";
-    if (s >= 45) return "Средняя форма — разомнись перед игрой";
-    return "Низкая готовность — рекомендуем отдых";
+    if (s >= 85) return "Peak form";
+    if (s >= 65) return "Good form";
+    if (s >= 45) return "Average — warm up before the game";
+    return "Low readiness — rest recommended";
   };
 
   const getScoreColor = (s: number) => {
@@ -232,15 +226,15 @@ export function ReactionTest() {
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
           </svg>
           <h2 className="text-sm font-semibold uppercase tracking-wider text-red-600">
-            {t("reactionTest.badge")}
+            Readiness Test
           </h2>
         </div>
 
         <h3 className="text-3xl md:text-4xl font-bold mb-4">
-          {t("reactionTest.title")}
+          Reaction & Readiness Check
         </h3>
         <p className="text-gray-400 mb-8">
-          {t("reactionTest.subtitle")}
+          Click green circles as fast as you can. Ignore red ones.
         </p>
 
         {/* Game area */}
@@ -249,59 +243,69 @@ export function ReactionTest() {
             {state === "idle" && (
               <div className="mb-4 text-left">
                 <label className="block text-sm font-semibold mb-2 uppercase tracking-wide text-gray-400">
-                  Название команды
+                  Team name
                 </label>
-                <Input
-                  type="text"
-                  placeholder="Введите название вашей команды"
-                  value={teamName}
-                  onChange={(e) => setTeamName(e.target.value)}
-                  onClick={(e) => e.stopPropagation()}
-                />
+                <div className="relative">
+                  <Input
+                    type="text"
+                    placeholder="Enter your team name"
+                    value={teamName}
+                    onChange={(e) => setTeamName(e.target.value)}
+                    onClick={(e) => e.stopPropagation()}
+                    className={teamName ? "border-green-500 pr-10" : ""}
+                  />
+                  {teamName && (
+                    <span className="absolute right-3 top-1/2 -translate-y-1/2 text-green-500">
+                      <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
+                      </svg>
+                    </span>
+                  )}
+                </div>
                 <p className="text-xs text-gray-600 mt-1">
-                  Необязательно — нужно для отображения в дашборде тренера
+                  Optional — required to appear on the coach dashboard
                 </p>
               </div>
             )}
-          <div
-            onClick={state === "idle" ? startGame : handleAreaClick}
-            className="relative w-full h-80 rounded-lg border-2 border-gray-800 bg-black overflow-hidden cursor-pointer mb-6 select-none"
-          >
-            {state === "idle" && (
-              <div className="absolute inset-0 flex flex-col items-center justify-center gap-3">
-                <p className="text-lg font-semibold">{t("reactionTest.clickToStart")}</p>
-                <p className="text-sm text-gray-500">{t("reactionTest.instructions")}</p>
-              </div>
-            )}
-
-            {state === "countdown" && (
-              <div className="absolute inset-0 flex items-center justify-center">
-                <span className="text-8xl font-bold text-white">{countdown}</span>
-              </div>
-            )}
-
-            {state === "playing" && (
-              <>
-                <div className="absolute top-3 left-4 text-xs text-gray-500">
-                  {progress}/{TOTAL_CIRCLES}
+            <div
+              onClick={state === "idle" ? startGame : handleAreaClick}
+              className="relative w-full h-80 rounded-lg border-2 border-gray-800 bg-black overflow-hidden cursor-pointer mb-6 select-none"
+            >
+              {state === "idle" && (
+                <div className="absolute inset-0 flex flex-col items-center justify-center gap-3">
+                  <p className="text-lg font-semibold">Click to start</p>
+                  <p className="text-sm text-gray-500">Click green — ignore red</p>
                 </div>
-                {circle && (
-                  <button
-                    onClick={handleCircleClick}
-                    className={`absolute w-14 h-14 rounded-full transition-transform active:scale-90 ${
-                      circle.type === "green"
-                        ? "bg-green-500 shadow-lg shadow-green-500/50 hover:bg-green-400"
-                        : "bg-red-600 shadow-lg shadow-red-600/50 hover:bg-red-500"
-                    }`}
-                    style={{
-                      left: `calc(${circle.x}% - 28px)`,
-                      top: `calc(${circle.y}% - 28px)`,
-                    }}
-                  />
-                )}
-              </>
-            )}
-          </div>
+              )}
+
+              {state === "countdown" && (
+                <div className="absolute inset-0 flex items-center justify-center">
+                  <span className="text-8xl font-bold text-white">{countdown}</span>
+                </div>
+              )}
+
+              {state === "playing" && (
+                <>
+                  <div className="absolute top-3 left-4 text-xs text-gray-500">
+                    {progress}/{TOTAL_CIRCLES}
+                  </div>
+                  {circle && (
+                    <button
+                      onClick={handleCircleClick}
+                      className={`absolute w-14 h-14 rounded-full transition-transform active:scale-90 ${
+                        circle.type === "green"
+                          ? "bg-green-500 shadow-lg shadow-green-500/50 hover:bg-green-400"
+                          : "bg-red-600 shadow-lg shadow-red-600/50 hover:bg-red-500"
+                      }`}
+                      style={{
+                        left: `calc(${circle.x}% - 28px)`,
+                        top: `calc(${circle.y}% - 28px)`,
+                      }}
+                    />
+                  )}
+                </>
+              )}
+            </div>
           </>
         )}
 
@@ -313,28 +317,28 @@ export function ReactionTest() {
 
             <div className="text-left rounded-lg bg-black border border-gray-800 divide-y divide-gray-800 mb-8">
               <div className="flex justify-between items-center px-5 py-3">
-                <span className="text-sm text-gray-400">Среднее время реакции</span>
-                <span className="text-sm font-bold font-mono">{avgMs} мс</span>
+                <span className="text-sm text-gray-400">Avg reaction time</span>
+                <span className="text-sm font-bold font-mono">{avgMs} ms</span>
               </div>
               <div className="flex justify-between items-center px-5 py-3">
-                <span className="text-sm text-gray-400">Пропущено целей</span>
+                <span className="text-sm text-gray-400">Missed targets</span>
                 <span className={`text-sm font-bold font-mono ${missedCount > 0 ? "text-red-500" : "text-gray-300"}`}>{missedCount}</span>
               </div>
               <div className="flex justify-between items-center px-5 py-3">
-                <span className="text-sm text-gray-400">Ложных нажатий</span>
+                <span className="text-sm text-gray-400">False clicks</span>
                 <span className={`text-sm font-bold font-mono ${falseCount > 0 ? "text-red-500" : "text-gray-300"}`}>{falseCount}</span>
               </div>
               <div className="flex justify-between items-center px-5 py-3">
-                <span className="text-sm text-gray-400">Итоговый score</span>
+                <span className="text-sm text-gray-400">Score</span>
                 <span className={`text-sm font-bold font-mono ${getScoreColor(score)}`}>{score}</span>
               </div>
             </div>
 
             <Button size="lg" onClick={() => setState("form")} className="w-full mb-3">
-              {t("reactionTest.btnSaveResult")}
+              Save result
             </Button>
             <button onClick={reset} className="text-sm text-gray-500 hover:text-gray-300 transition-colors">
-              {t("reactionTest.btnTryAgain")}
+              Try again
             </button>
           </div>
         )}
@@ -344,11 +348,11 @@ export function ReactionTest() {
           <div className="text-left space-y-6 max-w-md mx-auto">
             <div>
               <label className="block text-sm font-semibold mb-2 uppercase tracking-wide">
-                {t("reactionTest.formNickname")}
+                Nickname
               </label>
               <Input
                 type="text"
-                placeholder={t("reactionTest.formNicknamePlaceholder")}
+                placeholder="Your in-game name"
                 value={nickname}
                 onChange={(e) => setNickname(e.target.value)}
               />
@@ -356,7 +360,7 @@ export function ReactionTest() {
 
             <div>
               <label className="block text-sm font-semibold mb-3 uppercase tracking-wide">
-                {t("reactionTest.formSleep")}: <span className="text-red-600">{sleepHours}ч</span>
+                Hours of sleep last night: <span className="text-red-600">{sleepHours}h</span>
               </label>
               <input
                 type="range" min="1" max="12" value={sleepHours}
@@ -364,42 +368,27 @@ export function ReactionTest() {
                 className="w-full accent-red-600"
               />
               <div className="flex justify-between text-xs text-gray-500 mt-1">
-                <span>1ч</span><span>12ч</span>
+                <span>1h</span><span>12h</span>
               </div>
             </div>
 
             <div>
-              <label className="block text-sm font-semibold mb-3 uppercase tracking-wide">
-                {t("reactionTest.formStress")}: <span className="text-red-600">{stress}/10</span>
+              <label className="block text-sm font-semibold mb-2 uppercase tracking-wide">
+                If your match was cancelled right now — what would you feel?
               </label>
-              <input
-                type="range" min="1" max="10" value={stress}
-                onChange={(e) => setStress(Number(e.target.value))}
-                className="w-full accent-red-600"
+              <textarea
+                placeholder="Write honestly..."
+                value={cancellationAnswer}
+                onChange={(e) => setCancellationAnswer(e.target.value)}
+                rows={3}
+                className="w-full rounded-md border border-gray-700 bg-gray-900 px-4 py-3 text-sm text-white placeholder:text-gray-600 focus:outline-none focus:ring-2 focus:ring-red-600 resize-none"
               />
-              <div className="flex justify-between text-xs text-gray-500 mt-1">
-                <span>1</span><span>10</span>
-              </div>
-            </div>
-
-            <div>
-              <label className="block text-sm font-semibold mb-3 uppercase tracking-wide">
-                {t("reactionTest.formMotivation")}: <span className="text-red-600">{motivation}/10</span>
-              </label>
-              <input
-                type="range" min="1" max="10" value={motivation}
-                onChange={(e) => setMotivation(Number(e.target.value))}
-                className="w-full accent-red-600"
-              />
-              <div className="flex justify-between text-xs text-gray-500 mt-1">
-                <span>1</span><span>10</span>
-              </div>
             </div>
 
             {saveError && <p className="text-sm text-red-500">{saveError}</p>}
 
             <Button size="lg" className="w-full" onClick={handleSave} disabled={saving}>
-              {saving ? t("reactionTest.btnSaving") : t("reactionTest.btnSave")}
+              {saving ? "Saving..." : "Save result"}
             </Button>
           </div>
         )}
@@ -412,17 +401,17 @@ export function ReactionTest() {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
               </svg>
             </div>
-            <h4 className="text-xl font-bold mb-3">{t("reactionTest.savedTitle")}</h4>
-            <p className="text-gray-400 mb-8">{t("reactionTest.savedMessage")}</p>
+            <h4 className="text-xl font-bold mb-3">Result saved</h4>
+            <p className="text-gray-400 mb-8">Your coach will see it on the dashboard.</p>
             <Button variant="outline" onClick={reset}>
-              {t("reactionTest.btnTryAgain")}
+              Try again
             </Button>
           </div>
         )}
 
         {state === "idle" && (
           <Button size="lg" onClick={startGame}>
-            {t("reactionTest.btnStart")}
+            Start test
           </Button>
         )}
       </div>

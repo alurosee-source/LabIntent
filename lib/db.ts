@@ -52,6 +52,10 @@ export async function initDatabase() {
   `;
 
   await sql`
+    ALTER TABLE test_results ADD COLUMN IF NOT EXISTS cancellation_answer TEXT
+  `;
+
+  await sql`
     CREATE TABLE IF NOT EXISTS coach_applications (
       id SERIAL PRIMARY KEY,
       name TEXT,

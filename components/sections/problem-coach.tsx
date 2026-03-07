@@ -1,8 +1,8 @@
 export function ProblemCoach() {
   const lines = [
-    "Спад замечают после 5 проигранных матчей — не до",
-    "Нет психолога — тренер следит за состоянием интуитивно",
-    "Игрок обязан играть по контракту даже когда не в форме",
+    "Performance drops are noticed after 5 lost matches — not before",
+    "No sports psychologist — coaches track player state by intuition",
+    "Players are contractually required to play even when not ready",
   ];
 
   return (

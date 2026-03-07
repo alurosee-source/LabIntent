@@ -13,7 +13,7 @@ export function Navbar() {
           href="/login"
           className="text-sm font-semibold px-4 py-1.5 rounded-md border border-gray-700 text-gray-300 hover:border-red-600/60 hover:text-white transition-colors"
         >
-          Для тренеров
+          For Coaches
         </Link>
       </div>
     </nav>

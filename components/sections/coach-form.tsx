@@ -25,10 +25,10 @@ export function CoachForm() {
         body: JSON.stringify({ name, team_name: teamName, contact, team_size: teamSize }),
       });
       const data = await res.json();
-      if (!res.ok) throw new Error(data.error || "Ошибка");
+      if (!res.ok) throw new Error(data.error || "Error");
       setSubmitted(true);
-    } catch (err: any) {
-      setError(err.message || "Что-то пошло не так. Попробуйте ещё раз.");
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : "Something went wrong. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -43,8 +43,8 @@ export function CoachForm() {
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
             </svg>
           </div>
-          <h3 className="text-2xl font-bold mb-3">Заявка принята</h3>
-          <p className="text-gray-400">Свяжемся в течение 24 часов.</p>
+          <h3 className="text-2xl font-bold mb-3">Application received</h3>
+          <p className="text-gray-400">We&apos;ll be in touch within 24 hours.</p>
         </div>
       </section>
     );
@@ -55,10 +55,10 @@ export function CoachForm() {
       <div className="max-w-xl mx-auto">
         <div className="text-center mb-10">
           <h2 className="text-sm font-semibold uppercase tracking-wider text-red-600 mb-3">
-            Пилот
+            Pilot
           </h2>
           <h3 className="text-3xl md:text-4xl font-bold mb-4">
-            Бесплатный пилот для вашей команды
+            Free pilot for your team
           </h3>
         </div>
 
@@ -71,11 +71,11 @@ export function CoachForm() {
 
           <div>
             <label className="block text-sm font-semibold mb-2 uppercase tracking-wide">
-              Ваше имя
+              Your name
             </label>
             <Input
               type="text"
-              placeholder="Тренер или капитан"
+              placeholder="Coach or team captain"
               value={name}
               onChange={(e) => setName(e.target.value)}
               required
@@ -85,11 +85,11 @@ export function CoachForm() {
 
           <div>
             <label className="block text-sm font-semibold mb-2 uppercase tracking-wide">
-              Название команды
+              Team name
             </label>
             <Input
               type="text"
-              placeholder="Название вашей команды"
+              placeholder="Your team name"
               value={teamName}
               onChange={(e) => setTeamName(e.target.value)}
               required
@@ -99,11 +99,11 @@ export function CoachForm() {
 
           <div>
             <label className="block text-sm font-semibold mb-2 uppercase tracking-wide">
-              Telegram или email для связи
+              Telegram or email
             </label>
             <Input
               type="text"
-              placeholder="@username или email@example.com"
+              placeholder="@username or email@example.com"
               value={contact}
               onChange={(e) => setContact(e.target.value)}
               required
@@ -113,7 +113,7 @@ export function CoachForm() {
 
           <div>
             <label className="block text-sm font-semibold mb-2 uppercase tracking-wide">
-              Количество игроков в команде
+              Number of players
             </label>
             <select
               value={teamSize}
@@ -122,19 +122,19 @@ export function CoachForm() {
               disabled={loading}
               className="flex h-12 w-full rounded-md border border-gray-700 bg-gray-900 px-4 py-2 text-base text-white focus:outline-none focus:ring-2 focus:ring-red-600 disabled:cursor-not-allowed disabled:opacity-50"
             >
-              <option value="">Выберите количество</option>
+              <option value="">Select size</option>
               <option value="5">5</option>
               <option value="6-10">6–10</option>
-              <option value="10+">Больше 10</option>
+              <option value="10+">More than 10</option>
             </select>
           </div>
 
           <Button type="submit" size="lg" className="w-full mt-6" disabled={loading}>
-            {loading ? "Отправка..." : "Подключить команду к пилоту"}
+            {loading ? "Sending..." : "Apply for the pilot"}
           </Button>
 
           <p className="text-xs text-center text-gray-500 mt-4">
-            Бесплатно. 2 недели. В конце — аналитический отчёт по каждому игроку.
+            Free. 2 weeks. Includes a full analytics report per player at the end.
           </p>
         </form>
       </div>

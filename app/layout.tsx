@@ -7,8 +7,8 @@ import { Navbar } from "@/components/navbar";
 const inter = Inter({ subsets: ["latin", "cyrillic"] });
 
 export const metadata: Metadata = {
-  title: "Drop Detector | Мониторинг готовности игроков для CS команд",
-  description: "Инструмент мониторинга готовности игроков для профессиональных CS команд. Бесплатный пилот — 2 недели.",
+  title: "Drop Detector | Player Readiness Monitoring for CS Teams",
+  description: "Pre-match readiness check for professional CS teams. Free 2-week pilot.",
 };
 
 export default function RootLayout({
@@ -17,7 +17,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="ru" className="dark">
+    <html lang="en" className="dark">
       <body className={inter.className}>
         <LanguageProvider>
           <Navbar />

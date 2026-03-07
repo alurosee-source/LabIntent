@@ -13,7 +13,7 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setLoading(true);
     setError("");
@@ -26,12 +26,12 @@ export default function LoginPage() {
       });
       const data = await res.json();
       if (!res.ok) {
-        setError(data.error || "Ошибка входа");
+        setError(data.error || "Sign in failed");
         return;
       }
       router.push("/dashboard");
     } catch {
-      setError("Ошибка сети. Попробуйте ещё раз.");
+      setError("Network error. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -44,7 +44,7 @@ export default function LoginPage() {
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-red-600/40 text-red-600 text-xs font-semibold uppercase tracking-wider mb-6">
             Drop Detector
           </div>
-          <h1 className="text-2xl font-bold">Вход для тренера</h1>
+          <h1 className="text-2xl font-bold">Coach sign in</h1>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-4">
@@ -70,7 +70,7 @@ export default function LoginPage() {
 
           <div>
             <label className="block text-sm font-semibold mb-2 uppercase tracking-wide text-gray-400">
-              Пароль
+              Password
             </label>
             <Input
               type="password"
@@ -83,20 +83,20 @@ export default function LoginPage() {
           </div>
 
           <Button type="submit" size="lg" className="w-full mt-2" disabled={loading}>
-            {loading ? "Входим..." : "Войти"}
+            {loading ? "Signing in..." : "Sign in"}
           </Button>
         </form>
 
         <p className="text-center text-sm text-gray-500 mt-6">
-          Нет команды?{" "}
+          No team yet?{" "}
           <Link href="/register-coach" className="text-red-500 hover:text-red-400 transition-colors">
-            Создать команду
+            Create a team
           </Link>
         </p>
 
         <p className="text-center mt-4">
           <Link href="/" className="text-xs text-gray-600 hover:text-gray-400 transition-colors">
-            ← На главную
+            ← Back to home
           </Link>
         </p>
       </div>
