@@ -49,6 +49,16 @@ function computeLuscherResult(
   );
 }
 
+function calcSleepHours(bedTime: string, wakeTime: string): number {
+  if (!bedTime || !wakeTime) return 0;
+  const [bh, bm] = bedTime.split(":").map(Number);
+  const [wh, wm] = wakeTime.split(":").map(Number);
+  let bedMin = bh * 60 + bm;
+  let wakeMin = wh * 60 + wm;
+  if (wakeMin <= bedMin) wakeMin += 24 * 60;
+  return Math.round((wakeMin - bedMin) / 60);
+}
+
 function classifyAnswer(answer: string): string | null {
   const text = answer.toLowerCase();
   const fatigue = ["relieved", "tired", "sleep", "rest", "exhausted", "finally", "thank god", "need a break"];
@@ -109,7 +119,8 @@ export function ReactionTest() {
   // Form
   const [teamName, setTeamName] = useState("");
   const [nickname, setNickname] = useState("");
-  const [sleepHours, setSleepHours] = useState(7);
+  const [bedTime, setBedTime] = useState("");
+  const [wakeTime, setWakeTime] = useState("");
   const [cancellationAnswer, setCancellationAnswer] = useState("");
   const [saveError, setSaveError] = useState("");
 
@@ -287,7 +298,9 @@ export function ReactionTest() {
           missed_targets: missedCount,
           false_clicks: falseCount,
           score,
-          sleep_hours: sleepHours,
+          sleep_hours: calcSleepHours(bedTime, wakeTime),
+          bed_time: bedTime || null,
+          wake_time: wakeTime || null,
           cancellation_answer: cancellationAnswer || null,
           schulte_time: schulteTime || null,
           luscher_result: luscherResult || null,
@@ -312,7 +325,8 @@ export function ReactionTest() {
     setFalseCount(0);
     setNickname("");
     setTeamName("");
-    setSleepHours(7);
+    setBedTime("");
+    setWakeTime("");
     setCancellationAnswer("");
     setSaveError("");
     setProgress(0);
@@ -544,16 +558,34 @@ export function ReactionTest() {
 
             <div>
               <label className="block text-sm font-semibold mb-3 uppercase tracking-wide">
-                Hours of sleep last night: <span className="text-red-600">{sleepHours}h</span>
+                Sleep{" "}
+                {bedTime && wakeTime && (
+                  <span className="text-red-600 normal-case font-normal">
+                    — {calcSleepHours(bedTime, wakeTime)}h
+                  </span>
+                )}
               </label>
-              <input
-                type="range" min="1" max="12" value={sleepHours}
-                onChange={(e) => setSleepHours(Number(e.target.value))}
-                className="w-full accent-red-600"
-                disabled={state === "saving"}
-              />
-              <div className="flex justify-between text-xs text-gray-500 mt-1">
-                <span>1h</span><span>12h</span>
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <p className="text-xs text-gray-500 mb-1">Went to bed</p>
+                  <input
+                    type="time"
+                    value={bedTime}
+                    onChange={(e) => setBedTime(e.target.value)}
+                    disabled={state === "saving"}
+                    className="w-full rounded-md border border-gray-700 bg-gray-900 px-3 py-2 text-sm text-white focus:outline-none focus:ring-2 focus:ring-red-600 disabled:opacity-50"
+                  />
+                </div>
+                <div>
+                  <p className="text-xs text-gray-500 mb-1">Woke up</p>
+                  <input
+                    type="time"
+                    value={wakeTime}
+                    onChange={(e) => setWakeTime(e.target.value)}
+                    disabled={state === "saving"}
+                    className="w-full rounded-md border border-gray-700 bg-gray-900 px-3 py-2 text-sm text-white focus:outline-none focus:ring-2 focus:ring-red-600 disabled:opacity-50"
+                  />
+                </div>
               </div>
             </div>
 

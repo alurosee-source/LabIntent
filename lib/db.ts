@@ -68,6 +68,14 @@ export async function initDatabase() {
   `;
 
   await sql`
+    ALTER TABLE test_results ADD COLUMN IF NOT EXISTS bed_time TEXT
+  `;
+
+  await sql`
+    ALTER TABLE test_results ADD COLUMN IF NOT EXISTS wake_time TEXT
+  `;
+
+  await sql`
     CREATE TABLE IF NOT EXISTS coach_applications (
       id SERIAL PRIMARY KEY,
       name TEXT,
