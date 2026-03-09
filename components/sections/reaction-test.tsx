@@ -62,7 +62,7 @@ function calcSleepHours(bedTime: string, wakeTime: string): number {
 function classifyAnswer(answer: string): string | null {
   const text = answer.toLowerCase();
   const fatigue = ["relieved", "tired", "sleep", "rest", "exhausted", "finally", "thank god", "need a break"];
-  const mobilizing = ["disappointed", "want to play", "ready", "pumped", "focused", "let's go", "fired up", "motivated"];
+  const mobilizing = ["disappointed", "want to play", "ready", "pumped", "focused", "let's go", "fired up", "motivated", "nothing", "fine", "calm", "ok", "okay"];
   const anxiety = ["nervous", "scared", "anxious", "worried", "pressure", "stressed", "can't", "afraid"];
 
   if (fatigue.some((w) => text.includes(w))) return "Fatigue";
