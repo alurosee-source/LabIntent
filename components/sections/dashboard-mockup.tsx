@@ -1,15 +1,55 @@
-export function DashboardMockup() {
-  const players = [
-    { name: "Player_1", score: 88,  sleep: "8h", answer: "Relieved — I need the break", status: "ready" },
-    { name: "Player_2", score: 42,  sleep: "5h", answer: "Nothing. Don't care either way.", status: "warning" },
-    { name: "Player_3", score: 71,  sleep: "7h", answer: "A bit disappointed, I was ready", status: "ready" },
-    { name: "Player_4", score: 55,  sleep: "6h", answer: "Honestly relieved, been stressed", status: "warning" },
-    { name: "Player_5", score: 90,  sleep: "8h", answer: "Gutted — I've been looking forward to it", status: "ready" },
-  ];
+const players = [
+  {
+    name: "s1mple",
+    status: { label: "Sharp", dot: "bg-green-500", border: "border-green-800 text-green-400" },
+    reaction: { text: "Fast", color: "text-green-400" },
+    focus: { text: "High", color: "text-green-400" },
+    sleep: { text: "8h (23:00 → 07:00)", color: "text-gray-400" },
+    emotion: { text: "Mobilized", color: "bg-yellow-900/50 text-yellow-400" },
+    answer: "Gutted — I was looking forward to it",
+  },
+  {
+    name: "NiKo",
+    status: { label: "Sharp", dot: "bg-green-500", border: "border-green-800 text-green-400" },
+    reaction: { text: "Fast", color: "text-green-400" },
+    focus: { text: "Average", color: "text-gray-400" },
+    sleep: { text: "7h (00:00 → 07:00)", color: "text-gray-400" },
+    emotion: { text: "Mobilized", color: "bg-yellow-900/50 text-yellow-400" },
+    answer: "Nothing. Ready to play.",
+  },
+  {
+    name: "electroNic",
+    status: { label: "Monitor", dot: "bg-yellow-500", border: "border-yellow-800 text-yellow-400" },
+    reaction: { text: "Average", color: "text-gray-400" },
+    focus: { text: "Average", color: "text-gray-400" },
+    sleep: { text: "5h (02:00 → 07:00)", color: "text-yellow-500" },
+    emotion: { text: "Neutral", color: "bg-gray-800 text-gray-400" },
+    answer: "Fine I guess, a bit tired",
+  },
+  {
+    name: "b1t",
+    status: { label: "Bench", dot: "bg-red-500", border: "border-red-800 text-red-400" },
+    reaction: { text: "Slow", color: "text-red-400" },
+    focus: { text: "Low", color: "text-red-400" },
+    sleep: { text: "4h (03:00 → 07:00)", color: "text-yellow-500" },
+    emotion: { text: "Fatigued", color: "bg-red-900/50 text-red-400" },
+    answer: "Relieved honestly, I need rest",
+  },
+  {
+    name: "Perfecto",
+    status: { label: "Monitor", dot: "bg-yellow-500", border: "border-yellow-800 text-yellow-400" },
+    reaction: { text: "Fast", color: "text-green-400" },
+    focus: { text: "High", color: "text-green-400" },
+    sleep: { text: "6h (01:00 → 07:00)", color: "text-gray-400" },
+    emotion: { text: "Anxious", color: "bg-red-900/50 text-red-400" },
+    answer: "Stressed, worried about my performance",
+  },
+];
 
+export function DashboardMockup() {
   return (
     <section className="py-16 px-4 bg-black">
-      <div className="max-w-4xl mx-auto">
+      <div className="max-w-5xl mx-auto">
         <div className="text-center mb-8">
           <h3 className="text-2xl md:text-3xl font-bold">
             What the coach sees across the whole team
@@ -26,39 +66,38 @@ export function DashboardMockup() {
           </div>
 
           <div className="overflow-x-auto">
-            <table className="w-full">
+            <table className="w-full text-sm">
               <thead>
-                <tr className="border-b border-gray-800">
-                  <th className="text-left px-6 py-4 text-xs font-semibold uppercase tracking-wider text-gray-500">Player</th>
-                  <th className="text-left px-6 py-4 text-xs font-semibold uppercase tracking-wider text-gray-500">Score</th>
-                  <th className="text-left px-6 py-4 text-xs font-semibold uppercase tracking-wider text-gray-500">Sleep</th>
-                  <th className="text-left px-6 py-4 text-xs font-semibold uppercase tracking-wider text-gray-500">If match cancelled...</th>
-                  <th className="text-left px-6 py-4 text-xs font-semibold uppercase tracking-wider text-gray-500">Status</th>
+                <tr className="border-b border-gray-800 bg-gray-900/80">
+                  <th className="text-left px-4 py-3 text-xs uppercase tracking-wider text-gray-500 font-semibold">Player</th>
+                  <th className="text-left px-4 py-3 text-xs uppercase tracking-wider text-gray-500 font-semibold">Status</th>
+                  <th className="text-left px-4 py-3 text-xs uppercase tracking-wider text-gray-500 font-semibold">Reaction</th>
+                  <th className="text-left px-4 py-3 text-xs uppercase tracking-wider text-gray-500 font-semibold">Focus</th>
+                  <th className="text-left px-4 py-3 text-xs uppercase tracking-wider text-gray-500 font-semibold">Sleep</th>
+                  <th className="text-left px-4 py-3 text-xs uppercase tracking-wider text-gray-500 font-semibold">Emotional state</th>
+                  <th className="text-left px-4 py-3 text-xs uppercase tracking-wider text-gray-500 font-semibold">If match cancelled...</th>
                 </tr>
               </thead>
-              <tbody>
+              <tbody className="divide-y divide-gray-800/50">
                 {players.map((p, i) => (
-                  <tr key={i} className="border-b border-gray-800/50 hover:bg-gray-800/30 transition-colors">
-                    <td className="px-6 py-4 font-mono text-sm font-semibold">{p.name}</td>
-                    <td className={`px-6 py-4 text-sm font-bold font-mono ${p.score >= 75 ? "text-green-500" : p.score >= 50 ? "text-yellow-500" : "text-red-500"}`}>
-                      {p.score}
+                  <tr key={i} className="hover:bg-gray-900/40 transition-colors">
+                    <td className="px-4 py-4 font-medium">{p.name}</td>
+                    <td className="px-4 py-4">
+                      <span className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded border text-xs font-semibold ${p.status.border}`}>
+                        <span className={`w-1.5 h-1.5 rounded-full ${p.status.dot}`} />
+                        {p.status.label}
+                      </span>
                     </td>
-                    <td className={`px-6 py-4 text-sm ${parseInt(p.sleep) <= 5 ? "text-yellow-500" : "text-gray-300"}`}>
-                      {p.sleep}
+                    <td className={`px-4 py-4 ${p.reaction.color}`}>{p.reaction.text}</td>
+                    <td className={`px-4 py-4 ${p.focus.color}`}>{p.focus.text}</td>
+                    <td className={`px-4 py-4 ${p.sleep.color}`}>{p.sleep.text}</td>
+                    <td className="px-4 py-4">
+                      <span className={`inline-block px-2 py-0.5 rounded text-xs font-semibold ${p.emotion.color}`}>
+                        {p.emotion.text}
+                      </span>
                     </td>
-                    <td className="px-6 py-4 text-sm text-gray-400 italic max-w-xs">
+                    <td className="px-4 py-4 text-gray-300 italic max-w-xs">
                       &ldquo;{p.answer}&rdquo;
-                    </td>
-                    <td className="px-6 py-4">
-                      {p.status === "ready" ? (
-                        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-green-500/10 text-green-500 text-xs font-semibold">
-                          ✅ Ready
-                        </span>
-                      ) : (
-                        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-yellow-500/10 text-yellow-500 text-xs font-semibold">
-                          ⚠️ Watch
-                        </span>
-                      )}
                     </td>
                   </tr>
                 ))}
