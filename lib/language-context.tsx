@@ -148,6 +148,7 @@ const translations: Record<Language, any> = {
       savedTitle: "Result saved",
       savedMessage: "Your coach will see it on the dashboard.",
       btnStartTest: "Start test",
+      fieldRequired: "This field is required",
     },
   },
   ru: {
@@ -260,6 +261,7 @@ const translations: Record<Language, any> = {
       savedTitle: "Результат сохранён",
       savedMessage: "Тренер увидит его на дашборде.",
       btnStartTest: "Начать тест",
+      fieldRequired: "Это поле обязательно",
     },
   },
 };

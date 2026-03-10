@@ -125,6 +125,7 @@ export function ReactionTest() {
   const [wakeTime, setWakeTime] = useState("");
   const [cancellationAnswer, setCancellationAnswer] = useState("");
   const [saveError, setSaveError] = useState("");
+  const [formErrors, setFormErrors] = useState<{ nickname?: boolean; sleep?: boolean; answer?: boolean }>({});
 
   // Game refs (avoid stale closures in timers)
   const orderRef = useRef<Array<"green" | "red">>([]);
@@ -284,6 +285,14 @@ export function ReactionTest() {
   };
 
   const handleSave = async () => {
+    const errors = {
+      nickname: !nickname.trim(),
+      sleep: !bedTime || !wakeTime,
+      answer: !cancellationAnswer.trim(),
+    };
+    setFormErrors(errors);
+    if (errors.nickname || errors.sleep || errors.answer) return;
+
     setState("saving");
     setSaveError("");
 
@@ -331,6 +340,7 @@ export function ReactionTest() {
     setWakeTime("");
     setCancellationAnswer("");
     setSaveError("");
+    setFormErrors({});
     setProgress(0);
     setSchulteNext(1);
     setSchulteTime(0);
@@ -553,9 +563,11 @@ export function ReactionTest() {
                 type="text"
                 placeholder={t("reactionTest.placeholderNickname")}
                 value={nickname}
-                onChange={(e) => setNickname(e.target.value)}
+                onChange={(e) => { setNickname(e.target.value); setFormErrors((f) => ({ ...f, nickname: false })); }}
                 disabled={state === "saving"}
+                className={formErrors.nickname ? "border-red-500" : ""}
               />
+              {formErrors.nickname && <p className="text-xs text-red-500 mt-1">{t("reactionTest.fieldRequired")}</p>}
             </div>
 
             <div>
@@ -573,9 +585,9 @@ export function ReactionTest() {
                   <input
                     type="time"
                     value={bedTime}
-                    onChange={(e) => setBedTime(e.target.value)}
+                    onChange={(e) => { setBedTime(e.target.value); setFormErrors((f) => ({ ...f, sleep: false })); }}
                     disabled={state === "saving"}
-                    className="w-full rounded-md border border-gray-700 bg-gray-900 px-3 py-2 text-sm text-white focus:outline-none focus:ring-2 focus:ring-red-600 disabled:opacity-50"
+                    className={`w-full rounded-md border px-3 py-2 text-sm text-white bg-gray-900 focus:outline-none focus:ring-2 focus:ring-red-600 disabled:opacity-50 ${formErrors.sleep ? "border-red-500" : "border-gray-700"}`}
                   />
                 </div>
                 <div>
@@ -583,12 +595,13 @@ export function ReactionTest() {
                   <input
                     type="time"
                     value={wakeTime}
-                    onChange={(e) => setWakeTime(e.target.value)}
+                    onChange={(e) => { setWakeTime(e.target.value); setFormErrors((f) => ({ ...f, sleep: false })); }}
                     disabled={state === "saving"}
-                    className="w-full rounded-md border border-gray-700 bg-gray-900 px-3 py-2 text-sm text-white focus:outline-none focus:ring-2 focus:ring-red-600 disabled:opacity-50"
+                    className={`w-full rounded-md border px-3 py-2 text-sm text-white bg-gray-900 focus:outline-none focus:ring-2 focus:ring-red-600 disabled:opacity-50 ${formErrors.sleep ? "border-red-500" : "border-gray-700"}`}
                   />
                 </div>
               </div>
+              {formErrors.sleep && <p className="text-xs text-red-500 mt-1">{t("reactionTest.fieldRequired")}</p>}
             </div>
 
             <div>
@@ -598,11 +611,12 @@ export function ReactionTest() {
               <textarea
                 placeholder={t("reactionTest.placeholderCancellation")}
                 value={cancellationAnswer}
-                onChange={(e) => setCancellationAnswer(e.target.value)}
+                onChange={(e) => { setCancellationAnswer(e.target.value); setFormErrors((f) => ({ ...f, answer: false })); }}
                 rows={3}
                 disabled={state === "saving"}
-                className="w-full rounded-md border border-gray-700 bg-gray-900 px-4 py-3 text-sm text-white placeholder:text-gray-600 focus:outline-none focus:ring-2 focus:ring-red-600 resize-none disabled:opacity-50"
+                className={`w-full rounded-md border bg-gray-900 px-4 py-3 text-sm text-white placeholder:text-gray-600 focus:outline-none focus:ring-2 focus:ring-red-600 resize-none disabled:opacity-50 ${formErrors.answer ? "border-red-500" : "border-gray-700"}`}
               />
+              {formErrors.answer && <p className="text-xs text-red-500 mt-1">{t("reactionTest.fieldRequired")}</p>}
             </div>
 
             {saveError && <p className="text-sm text-red-500">{saveError}</p>}
