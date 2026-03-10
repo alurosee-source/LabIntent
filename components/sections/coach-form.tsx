@@ -3,8 +3,10 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { useLanguage } from "@/lib/language-context";
 
 export function CoachForm() {
+  const { t } = useLanguage();
   const [name, setName] = useState("");
   const [teamName, setTeamName] = useState("");
   const [contact, setContact] = useState("");
@@ -28,7 +30,7 @@ export function CoachForm() {
       if (!res.ok) throw new Error(data.error || "Error");
       setSubmitted(true);
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : "Something went wrong. Please try again.");
+      setError(err instanceof Error ? err.message : t("coachForm.errorGeneric"));
     } finally {
       setLoading(false);
     }
@@ -43,8 +45,8 @@ export function CoachForm() {
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
             </svg>
           </div>
-          <h3 className="text-2xl font-bold mb-3">Application received</h3>
-          <p className="text-gray-400">We&apos;ll be in touch within 24 hours.</p>
+          <h3 className="text-2xl font-bold mb-3">{t("coachForm.successTitle")}</h3>
+          <p className="text-gray-400">{t("coachForm.successMessage")}</p>
         </div>
       </section>
     );
@@ -55,10 +57,10 @@ export function CoachForm() {
       <div className="max-w-xl mx-auto">
         <div className="text-center mb-10">
           <h2 className="text-sm font-semibold uppercase tracking-wider text-red-600 mb-3">
-            Pilot
+            {t("coachForm.badge")}
           </h2>
           <h3 className="text-3xl md:text-4xl font-bold mb-4">
-            Free pilot for your team
+            {t("coachForm.title")}
           </h3>
         </div>
 
@@ -71,11 +73,11 @@ export function CoachForm() {
 
           <div>
             <label className="block text-sm font-semibold mb-2 uppercase tracking-wide">
-              Your name
+              {t("coachForm.labelName")}
             </label>
             <Input
               type="text"
-              placeholder="Coach or team captain"
+              placeholder={t("coachForm.placeholderName")}
               value={name}
               onChange={(e) => setName(e.target.value)}
               required
@@ -85,11 +87,11 @@ export function CoachForm() {
 
           <div>
             <label className="block text-sm font-semibold mb-2 uppercase tracking-wide">
-              Team name
+              {t("coachForm.labelTeam")}
             </label>
             <Input
               type="text"
-              placeholder="Your team name"
+              placeholder={t("coachForm.placeholderTeam")}
               value={teamName}
               onChange={(e) => setTeamName(e.target.value)}
               required
@@ -99,11 +101,11 @@ export function CoachForm() {
 
           <div>
             <label className="block text-sm font-semibold mb-2 uppercase tracking-wide">
-              Telegram or email
+              {t("coachForm.labelContact")}
             </label>
             <Input
               type="text"
-              placeholder="@username or email@example.com"
+              placeholder={t("coachForm.placeholderContact")}
               value={contact}
               onChange={(e) => setContact(e.target.value)}
               required
@@ -113,7 +115,7 @@ export function CoachForm() {
 
           <div>
             <label className="block text-sm font-semibold mb-2 uppercase tracking-wide">
-              Number of players
+              {t("coachForm.labelSize")}
             </label>
             <select
               value={teamSize}
@@ -122,19 +124,19 @@ export function CoachForm() {
               disabled={loading}
               className="flex h-12 w-full rounded-md border border-gray-700 bg-gray-900 px-4 py-2 text-base text-white focus:outline-none focus:ring-2 focus:ring-red-600 disabled:cursor-not-allowed disabled:opacity-50"
             >
-              <option value="">Select size</option>
+              <option value="">{t("coachForm.sizeDefault")}</option>
               <option value="5">5</option>
               <option value="6-10">6–10</option>
-              <option value="10+">More than 10</option>
+              <option value="10+">{t("coachForm.sizeMore")}</option>
             </select>
           </div>
 
           <Button type="submit" size="lg" className="w-full mt-6" disabled={loading}>
-            {loading ? "Sending..." : "Apply for the pilot"}
+            {loading ? t("coachForm.btnSending") : t("coachForm.btnSubmit")}
           </Button>
 
           <p className="text-xs text-center text-gray-500 mt-4">
-            Free. 2 weeks. Includes a full analytics report per player at the end.
+            {t("coachForm.note")}
           </p>
         </form>
       </div>

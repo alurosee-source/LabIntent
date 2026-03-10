@@ -3,6 +3,7 @@
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useState, useRef, useEffect, useCallback } from "react";
+import { useLanguage } from "@/lib/language-context";
 
 type GameState =
   | "idle"
@@ -92,6 +93,7 @@ function calcScore(avgMs: number, missed: number, falseCl: number): number {
 }
 
 export function ReactionTest() {
+  const { t } = useLanguage();
   const [state, setState] = useState<GameState>("idle");
   const [countdown, setCountdown] = useState(3);
   const [circle, setCircle] = useState<{ type: "green" | "red"; x: number; y: number } | null>(null);
@@ -310,7 +312,7 @@ export function ReactionTest() {
       if (!res.ok) throw new Error("failed");
       setState("saved");
     } catch {
-      setSaveError("Failed to save. Please try again.");
+      setSaveError(t("reactionTest.saveError"));
       setState("form");
     }
   };
@@ -340,10 +342,10 @@ export function ReactionTest() {
   }, []);
 
   const getScoreLabel = (s: number) => {
-    if (s >= 85) return "Peak form";
-    if (s >= 65) return "Good form";
-    if (s >= 45) return "Average — warm up before the game";
-    return "Low readiness — rest recommended";
+    if (s >= 85) return t("reactionTest.scoreLabel85");
+    if (s >= 65) return t("reactionTest.scoreLabel65");
+    if (s >= 45) return t("reactionTest.scoreLabel45");
+    return t("reactionTest.scoreLabelLow");
   };
 
   const getScoreColor = (s: number) => {
@@ -361,15 +363,15 @@ export function ReactionTest() {
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
           </svg>
           <h2 className="text-sm font-semibold uppercase tracking-wider text-red-600">
-            Readiness Test
+            {t("reactionTest.badge")}
           </h2>
         </div>
 
         <h3 className="text-3xl md:text-4xl font-bold mb-4">
-          Reaction & Readiness Check
+          {t("reactionTest.title")}
         </h3>
         <p className="text-gray-400 mb-8">
-          Click green circles as fast as you can. Ignore red ones.
+          {t("reactionTest.subtitle")}
         </p>
 
         {/* Reaction test area */}
@@ -378,12 +380,12 @@ export function ReactionTest() {
             {state === "idle" && (
               <div className="mb-4 text-left">
                 <label className="block text-sm font-semibold mb-2 uppercase tracking-wide text-gray-400">
-                  Team name
+                  {t("reactionTest.teamName")}
                 </label>
                 <div className="relative">
                   <Input
                     type="text"
-                    placeholder="Enter your team name"
+                    placeholder={t("reactionTest.teamNamePlaceholder")}
                     value={teamName}
                     onChange={(e) => setTeamName(e.target.value)}
                     onClick={(e) => e.stopPropagation()}
@@ -398,7 +400,7 @@ export function ReactionTest() {
                   )}
                 </div>
                 <p className="text-xs text-gray-600 mt-1">
-                  Optional — required to appear on the coach dashboard
+                  {t("reactionTest.teamNameNote")}
                 </p>
               </div>
             )}
@@ -408,8 +410,8 @@ export function ReactionTest() {
             >
               {state === "idle" && (
                 <div className="absolute inset-0 flex flex-col items-center justify-center gap-3">
-                  <p className="text-lg font-semibold">Click to start</p>
-                  <p className="text-sm text-gray-500">Click green — ignore red</p>
+                  <p className="text-lg font-semibold">{t("reactionTest.clickToStart")}</p>
+                  <p className="text-sm text-gray-500">{t("reactionTest.clickHint")}</p>
                 </div>
               )}
 
@@ -452,28 +454,28 @@ export function ReactionTest() {
 
             <div className="text-left rounded-lg bg-black border border-gray-800 divide-y divide-gray-800 mb-8">
               <div className="flex justify-between items-center px-5 py-3">
-                <span className="text-sm text-gray-400">Avg reaction time</span>
+                <span className="text-sm text-gray-400">{t("reactionTest.avgReaction")}</span>
                 <span className="text-sm font-bold font-mono">{avgMs} ms</span>
               </div>
               <div className="flex justify-between items-center px-5 py-3">
-                <span className="text-sm text-gray-400">Missed targets</span>
+                <span className="text-sm text-gray-400">{t("reactionTest.missedTargets")}</span>
                 <span className={`text-sm font-bold font-mono ${missedCount > 0 ? "text-red-500" : "text-gray-300"}`}>{missedCount}</span>
               </div>
               <div className="flex justify-between items-center px-5 py-3">
-                <span className="text-sm text-gray-400">False clicks</span>
+                <span className="text-sm text-gray-400">{t("reactionTest.falseClicks")}</span>
                 <span className={`text-sm font-bold font-mono ${falseCount > 0 ? "text-red-500" : "text-gray-300"}`}>{falseCount}</span>
               </div>
               <div className="flex justify-between items-center px-5 py-3">
-                <span className="text-sm text-gray-400">Score</span>
+                <span className="text-sm text-gray-400">{t("reactionTest.score")}</span>
                 <span className={`text-sm font-bold font-mono ${getScoreColor(score)}`}>{score}</span>
               </div>
             </div>
 
             <Button size="lg" onClick={startSchulte} className="w-full mb-3">
-              Continue →
+              {t("reactionTest.btnContinue")}
             </Button>
             <button onClick={reset} className="text-sm text-gray-500 hover:text-gray-300 transition-colors">
-              Try again
+              {t("reactionTest.btnTryAgain")}
             </button>
           </div>
         )}
@@ -482,12 +484,12 @@ export function ReactionTest() {
         {state === "schulte" && (
           <div className="mb-8">
             <div className="mb-2 text-sm text-gray-400 uppercase tracking-wider font-semibold">
-              Step 2 of 4 — Attention test
+              {t("reactionTest.step2")}
             </div>
             <p className="text-gray-400 mb-1">
-              Click numbers <span className="text-white font-bold">1 → 25</span> in order as fast as you can
+              {t("reactionTest.schulteDesc")}
             </p>
-            <p className="text-xs text-gray-600 mb-6">Timer starts on your first click</p>
+            <p className="text-xs text-gray-600 mb-6">{t("reactionTest.schulteTimerNote")}</p>
             <div className="grid grid-cols-5 gap-2 max-w-xs mx-auto mb-6">
               {schulteGrid.map((num) => (
                 <button
@@ -504,7 +506,7 @@ export function ReactionTest() {
               ))}
             </div>
             <div className="text-sm text-gray-500">
-              Find and click: <span className="text-white font-bold">{schulteNext}</span>
+              {t("reactionTest.schulteFindNext")} <span className="text-white font-bold">{schulteNext}</span>
             </div>
           </div>
         )}
@@ -513,12 +515,12 @@ export function ReactionTest() {
         {state === "luscher" && (
           <div className="mb-8">
             <div className="mb-2 text-sm text-gray-400 uppercase tracking-wider font-semibold">
-              Step 3 of 4 — Color preference
+              {t("reactionTest.step3")}
             </div>
             <p className="text-gray-400 mb-1">
-              Pick colors in order of preference, most appealing first
+              {t("reactionTest.luscherDesc")}
             </p>
-            <p className="text-xs text-gray-600 mb-6">Round {luscherRound} of 2</p>
+            <p className="text-xs text-gray-600 mb-6">{t("reactionTest.luscherRound").replace("{n}", String(luscherRound))}</p>
             <div className="flex flex-wrap gap-3 justify-center mb-6">
               {luscherRemaining.map((id) => {
                 const color = LUSCHER_COLORS.find((c) => c.id === id)!;
@@ -532,7 +534,7 @@ export function ReactionTest() {
                 );
               })}
             </div>
-            <p className="text-xs text-gray-600">{8 - luscherRemaining.length} of 8 selected</p>
+            <p className="text-xs text-gray-600">{t("reactionTest.luscherSelected").replace("{n}", String(8 - luscherRemaining.length))}</p>
           </div>
         )}
 
@@ -540,16 +542,16 @@ export function ReactionTest() {
         {(state === "form" || state === "saving") && (
           <div className="text-left space-y-6 max-w-md mx-auto">
             <div className="mb-2 text-sm text-gray-400 uppercase tracking-wider font-semibold text-center">
-              Step 4 of 4 — About you
+              {t("reactionTest.step4")}
             </div>
 
             <div>
               <label className="block text-sm font-semibold mb-2 uppercase tracking-wide">
-                Nickname
+                {t("reactionTest.labelNickname")}
               </label>
               <Input
                 type="text"
-                placeholder="Your in-game name"
+                placeholder={t("reactionTest.placeholderNickname")}
                 value={nickname}
                 onChange={(e) => setNickname(e.target.value)}
                 disabled={state === "saving"}
@@ -558,7 +560,7 @@ export function ReactionTest() {
 
             <div>
               <label className="block text-sm font-semibold mb-3 uppercase tracking-wide">
-                Sleep{" "}
+                {t("reactionTest.labelSleep")}{" "}
                 {bedTime && wakeTime && (
                   <span className="text-red-600 normal-case font-normal">
                     — {calcSleepHours(bedTime, wakeTime)}h
@@ -567,7 +569,7 @@ export function ReactionTest() {
               </label>
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <p className="text-xs text-gray-500 mb-1">Went to bed</p>
+                  <p className="text-xs text-gray-500 mb-1">{t("reactionTest.labelBedTime")}</p>
                   <input
                     type="time"
                     value={bedTime}
@@ -577,7 +579,7 @@ export function ReactionTest() {
                   />
                 </div>
                 <div>
-                  <p className="text-xs text-gray-500 mb-1">Woke up</p>
+                  <p className="text-xs text-gray-500 mb-1">{t("reactionTest.labelWakeTime")}</p>
                   <input
                     type="time"
                     value={wakeTime}
@@ -591,10 +593,10 @@ export function ReactionTest() {
 
             <div>
               <label className="block text-sm font-semibold mb-2 uppercase tracking-wide">
-                If your match was cancelled right now — what would you feel?
+                {t("reactionTest.labelCancellation")}
               </label>
               <textarea
-                placeholder="Write honestly..."
+                placeholder={t("reactionTest.placeholderCancellation")}
                 value={cancellationAnswer}
                 onChange={(e) => setCancellationAnswer(e.target.value)}
                 rows={3}
@@ -606,7 +608,7 @@ export function ReactionTest() {
             {saveError && <p className="text-sm text-red-500">{saveError}</p>}
 
             <Button size="lg" className="w-full" onClick={handleSave} disabled={state === "saving"}>
-              {state === "saving" ? "Analyzing & saving..." : "Save result"}
+              {state === "saving" ? t("reactionTest.btnSaving") : t("reactionTest.btnSave")}
             </Button>
           </div>
         )}
@@ -619,17 +621,17 @@ export function ReactionTest() {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
               </svg>
             </div>
-            <h4 className="text-xl font-bold mb-3">Result saved</h4>
-            <p className="text-gray-400 mb-8">Your coach will see it on the dashboard.</p>
+            <h4 className="text-xl font-bold mb-3">{t("reactionTest.savedTitle")}</h4>
+            <p className="text-gray-400 mb-8">{t("reactionTest.savedMessage")}</p>
             <Button variant="outline" onClick={reset}>
-              Try again
+              {t("reactionTest.btnTryAgain")}
             </Button>
           </div>
         )}
 
         {state === "idle" && (
           <Button size="lg" onClick={startGame}>
-            Start test
+            {t("reactionTest.btnStartTest")}
           </Button>
         )}
       </div>

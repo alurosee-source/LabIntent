@@ -1,17 +1,23 @@
+"use client";
+
+import { useLanguage } from "@/lib/language-context";
+
 export function HowWorksCoach() {
+  const { t } = useLanguage();
+
   const steps = [
-    { icon: "⏱", text: "Player takes the test before practice (3 minutes)" },
-    { icon: "📈", text: "The system builds a personal baseline for each player" },
-    { icon: "👁", text: "Coach sees who is ready and who is showing warning signs" },
+    { icon: "⏱", text: t("howWorksCoach.step1") },
+    { icon: "📈", text: t("howWorksCoach.step2") },
+    { icon: "👁", text: t("howWorksCoach.step3") },
   ];
 
   return (
     <section className="py-16 px-4 bg-black">
       <div className="max-w-2xl mx-auto">
         <h2 className="text-sm font-semibold uppercase tracking-wider text-red-600 mb-3">
-          How it works
+          {t("howWorksCoach.badge")}
         </h2>
-        <h3 className="text-2xl md:text-3xl font-bold mb-8">How it works</h3>
+        <h3 className="text-2xl md:text-3xl font-bold mb-8">{t("howWorksCoach.title")}</h3>
         <div className="space-y-3">
           {steps.map((s, i) => (
             <div

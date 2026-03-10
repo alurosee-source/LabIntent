@@ -1,8 +1,14 @@
+"use client";
+
+import { useLanguage } from "@/lib/language-context";
+
 export function ProblemCoach() {
+  const { t } = useLanguage();
+
   const lines = [
-    "Performance drops are noticed after 5 lost matches — not before",
-    "No sports psychologist — coaches track player state by intuition",
-    "Players are contractually required to play even when not ready",
+    t("problemCoach.line1"),
+    t("problemCoach.line2"),
+    t("problemCoach.line3"),
   ];
 
   return (
