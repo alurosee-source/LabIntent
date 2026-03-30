@@ -12,7 +12,7 @@ export function Navbar() {
       <div className="max-w-5xl mx-auto px-4 h-14 flex items-center justify-between">
         <Link href="/" className="flex items-center gap-2">
           <div className="w-2 h-2 rounded-full bg-red-600" />
-          <span className="font-bold text-sm uppercase tracking-wider">Drop Detector</span>
+          <span className="font-bold text-sm uppercase tracking-wider">Intent Lab</span>
         </Link>
 
         <div className="flex items-center gap-3">

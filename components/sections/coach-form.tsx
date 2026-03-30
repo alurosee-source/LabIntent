@@ -125,9 +125,9 @@ export function CoachForm() {
               className="flex h-12 w-full rounded-md border border-gray-700 bg-gray-900 px-4 py-2 text-base text-white focus:outline-none focus:ring-2 focus:ring-red-600 disabled:cursor-not-allowed disabled:opacity-50"
             >
               <option value="">{t("coachForm.sizeDefault")}</option>
-              <option value="5">5</option>
-              <option value="6-10">6–10</option>
-              <option value="10+">{t("coachForm.sizeMore")}</option>
+              <option value="amateur">Amateur</option>
+              <option value="faceit-high">Faceit / ESEA</option>
+              <option value="semi-pro">{t("coachForm.sizeMore")}</option>
             </select>
           </div>
 
